@@ -9,25 +9,36 @@ import joblib
 import numpy as np
 from scipy import stats
 from sklearn.impute import SimpleImputer
-from deap import base, creator, tools, algorithms
 import random
 
 # --------------------- 初始化函数 ---------------------
 def image_to_base64(image_path):
     """将图片转换为Base64编码，添加错误处理"""
     try:
-        img = Image.open(image_path)
+        if os.path.exists(image_path):
+            img = Image.open(image_path)
+            buffered = io.BytesIO()
+            img.save(buffered, format="PNG")
+            return base64.b64encode(buffered.getvalue()).decode()
+        else:
+            st.warning(f"图片文件不存在: {image_path}")
+            # 创建一个简单的占位图片
+            img = Image.new('RGB', (100, 100), color=(73, 109, 137))
+            buffered = io.BytesIO()
+            img.save(buffered, format="PNG")
+            return base64.b64encode(buffered.getvalue()).decode()
+    except Exception as e:
+        st.error(f"图片加载失败: {e}")
+        # 创建一个错误占位图片
+        img = Image.new('RGB', (100, 100), color=(255, 0, 0))
         buffered = io.BytesIO()
         img.save(buffered, format="PNG")
         return base64.b64encode(buffered.getvalue()).decode()
-    except Exception as e:
-        st.error(f"图片加载失败: {e}")
-        return ""
 
 # --------------------- 全局配置 ---------------------
-# 检查图片是否存在，不存在则使用默认值
-icon_base64 = image_to_base64("图片1.jpg") if os.path.exists("图片1.jpg") else ""
-background_base64 = image_to_base64("BG.png") if os.path.exists("BG.png") else ""
+# 检查图片是否存在
+icon_base64 = image_to_base64("图片1.jpg")
+background_base64 = image_to_base64("BG.png")
 
 # 设置页面配置
 st.set_page_config(
@@ -184,6 +195,20 @@ def apply_global_styles():
             background: rgba(255,255,255,0.92) !important;
             backdrop-filter: blur(6px);
         }}
+        
+        /* 主内容区域 */
+        .main-content {{
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-top: 1rem;
+        }}
+        
+        /* 修复标题显示 */
+        h1, h2, h3, h4, h5, h6 {{
+            color: #1e3d59 !important;
+        }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -199,10 +224,10 @@ def render_global_header():
                  style="width:160px; height:auto; border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,0.2)"
                  alt="平台标志">
             <div>
-                <h1 style="margin:0; font-size:4.8rem!important; color:#1e3d59!important;">
+                <h1 style="margin:0; font-size:3.5rem!important; color:#1e3d59!important;">
                     阻燃聚合物复合材料智能设计平台
                 </h1>
-                <p style="font-size:2.8rem!important; margin:1rem 0 0; color:#2c2c2c!important;">
+                <p style="font-size:1.8rem!important; margin:1rem 0 0; color:#2c2c2c!important;">
                     Flame Retardant Composites AI Platform
                 </p>
             </div>
@@ -215,131 +240,80 @@ def show_homepage():
     apply_global_styles()
     render_global_header()
     
-    # 主内容容器
-    st.markdown("""
-    <style>
-        .main-container {
-            max-width: 1400px;
-            margin: 2rem auto;
-            padding: 3rem;
-            border-radius: 24px;
-            box-shadow: 0 12px 48px rgba(0,0,0,0.1);
-            background: rgba(255,255,255,0.96);
-        }
-        .feature-card {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 16px;
-            box-shadow: 0 6px 24px rgba(0,0,0,0.08);
-            margin-bottom: 2.5rem;
-            border-left: 6px solid #3f87a6;
-            transition: transform 0.3s ease;
-        }
-        .feature-card:hover {
-            transform: translateY(-5px);
-        }
-        .section-title {
-            font-size: 3.2rem !important;
-            color: #1e3d59;
-            border-bottom: 4px solid #3f87a6;
-            padding-bottom: 1rem;
-            margin-bottom: 3rem;
-        }
-    </style>
-    """, unsafe_allow_html=True)
-
-    # 左侧核心内容
-    with st.container():
-        st.markdown('<div class="content-section">', unsafe_allow_html=True)
-
-        # 平台简介
+    # 使用列布局确保内容正确显示
+    col1, col2 = st.columns([2, 1], gap="large")
+    
+    with col1:
         st.markdown("""
-        <div style="font-size:1.5rem; line-height:1.8; margin-bottom:3rem;">
-            🚀 本平台融合AI与材料科学技术，致力于高分子复合材料的智能化设计，
-            重点关注阻燃性能、力学性能和热稳定性的多目标优化与调控。
-        </div>
-        """, unsafe_allow_html=True)
+        <div class="main-content">
+            <div style="font-size:1.2rem; line-height:1.6; margin-bottom:2rem;">
+                🚀 本平台融合AI与材料科学技术，致力于高分子复合材料的智能化设计，
+                重点关注阻燃性能、力学性能和热稳定性的多目标优化与调控。
+            </div>
 
-        # 核心功能 - 修复了这里的HTML标签问题
-        st.markdown("""
-        <h2 class="section-title">🌟 核心功能</h2>
-        <div class="feature-card">
-            <h3 style="font-size:1.8rem; color:var(--primary); margin:0 0 1rem 0;">
-                🔥 智能性能预测
-            </h3>
-            <p style="font-size:1.5rem;">
-                • 支持LOI（极限氧指数）预测<br>
-                • TS（拉伸强度）预测<br>
-            </p>  <!-- 修复了这里缺少的闭合标签 -->
-        </div>
+            <h2 class="section-title">🌟 核心功能</h2>
+            <div class="feature-card">
+                <h3 style="font-size:1.4rem; color:var(--primary); margin:0 0 0.8rem 0;">
+                    🔥 智能性能预测
+                </h3>
+                <p style="font-size:1.2rem;">
+                    • 支持LOI（极限氧指数）预测<br>
+                    • TS（拉伸强度）预测<br>
+                </p>
+            </div>
 
-        <div class="feature-card">
-            <h3 style="font-size:1.8rem; color:var(--primary); margin:0 0 1rem 0;">
-                ⚗️ 配方优化系统
-            </h3>
-            <p style="font-size:1.5rem;">
-                • 根据输入目标推荐配方<br>
-                • 支持选择配方种类<br>
-                • 添加剂比例智能推荐
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
+            <div class="feature-card">
+                <h3 style="font-size:1.4rem; color:var(--primary); margin:0 0 0.8rem 0;">
+                    ⚗️ 配方优化系统
+                </h3>
+                <p style="font-size:1.2rem;">
+                    • 根据输入目标推荐配方<br>
+                    • 支持选择配方种类<br>
+                    • 添加剂比例智能推荐
+                </p>
+            </div>
 
-        # 研究成果
-        st.markdown("""
-        <h2 class="section-title">🏆 研究成果</h2>
-        <div class="feature-card">
-            <p style="font-size:1.5rem;">
-                Ma Weibin, Li Ling, Zhang Yu, et al.<br>
-                <em>Active learning-based generative design of halogen-free flame-retardant polymeric composites.</em><br>
-                <strong>Journal of Materials Informatics</strong> 2025;5:09.<br>
-                DOI: <a href="https://doi.org/10.20517/jmi.2025.09" target="_blank" 
-                     style="color:var(--secondary); text-decoration:underline;">
-                    10.20517/jmi.2025.09
-                </a>
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
+            <h2 class="section-title">🏆 研究成果</h2>
+            <div class="feature-card">
+                <p style="font-size:1.2rem;">
+                    Ma Weibin, Li Ling, Zhang Yu, et al.<br>
+                    <em>Active learning-based generative design of halogen-free flame-retardant polymeric composites.</em><br>
+                    <strong>Journal of Materials Informatics</strong> 2025;5:09.<br>
+                    DOI: <a href="https://doi.org/10.20517/jmi.2025.09" target="_blank" 
+                         style="color:var(--secondary); text-decoration:underline;">
+                        10.20517/jmi.2025.09
+                    </a>
+                </p>
+            </div>
 
-        # 开发者信息
-        cols = st.columns(2)
-        with cols[0]:
-            st.markdown("""
             <div class="feature-card">
                 <h2 class="section-title">👨💻 开发团队</h2>
-                <p style="font-size:1.5rem;">
+                <p style="font-size:1.2rem;">
                     上海大学功能高分子<br>
                     PolyDesign <br>
                     马维宾 | 李凌 | 张瑜<br>
                     宋娜 | 丁鹏
                 </p>
             </div>
-            """, unsafe_allow_html=True)
 
-        with cols[1]:
-            st.markdown("""
             <div class="feature-card">
                 <h2 class="section-title">🙏 项目支持</h2>
-                <p style="font-size:1.5rem;">
+                <p style="font-size:1.2rem;">
                     云南省科技重点计划<br>
                     项目编号：202302AB080022<br>
                 </p>
             </div>
-            """, unsafe_allow_html=True)
+        </div>
+        """, unsafe_allow_html=True)
 
-        st.markdown('</div>', unsafe_allow_html=True)  # 结束content-section
-
-    # 右侧登录侧边栏
-    with st.sidebar:
+    with col2:
         st.markdown(f"""
         <div class="auth-sidebar" style='
-            position: sticky;
-            top: 2rem;
             background: rgba(255,255,255,0.98);
-            padding: 3rem;
+            padding: 2rem;
             border-radius: 20px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            margin: 2rem;
+            margin-bottom: 2rem;
         '>
         """, unsafe_allow_html=True)
 
@@ -347,7 +321,7 @@ def show_homepage():
 
         with tab_login:
             with st.form("login_form", clear_on_submit=True):
-                st.markdown('<h2 style="font-size:2rem; text-align:center; margin-bottom:2rem;">用户登录</h2>', 
+                st.markdown('<h3 style="text-align:center; margin-bottom:1.5rem;">用户登录</h3>', 
                           unsafe_allow_html=True)
                 username = st.text_input("用户名", key="login_user")
                 password = st.text_input("密码", type="password", key="login_pwd")
@@ -364,7 +338,7 @@ def show_homepage():
 
         with tab_register:
             with st.form("register_form", clear_on_submit=True):
-                st.markdown('<h2 style="font-size:2rem; text-align:center; margin-bottom:2rem;">新用户注册</h2>', 
+                st.markdown('<h3 style="text-align:center; margin-bottom:1.5rem;">新用户注册</h3>', 
                           unsafe_allow_html=True)
                 new_user = st.text_input("用户名（4-20位字母数字）", key="reg_user").strip()
                 new_pwd = st.text_input("设置密码（至少6位）", type="password", key="reg_pwd")
@@ -388,7 +362,7 @@ def show_homepage():
 
         with tab_forgot:
             with st.form("forgot_form", clear_on_submit=True):
-                st.markdown('<h2 style="font-size:2rem; text-align:center; margin-bottom:2rem;">密码重置</h2>', 
+                st.markdown('<h3 style="text-align:center; margin-bottom:1.5rem;">密码重置</h3>', 
                           unsafe_allow_html=True)
                 email = st.text_input("注册邮箱", key="reset_email")
                 new_password = st.text_input("新密码", type="password", key="new_pwd")
@@ -406,8 +380,6 @@ def show_homepage():
 
         st.markdown('</div>', unsafe_allow_html=True)  # 结束auth-sidebar
 
-    st.markdown('</div>', unsafe_allow_html=True)  # 结束main-container
-
 # --------------------- 主流程控制 ---------------------
 if not st.session_state.logged_in:
     show_homepage()
@@ -415,105 +387,15 @@ if not st.session_state.logged_in:
 
 # --------------------- 预测界面 ---------------------
 if st.session_state.logged_in:
-    class Predictor:
-        def __init__(self, scaler_path, svc_path):
-            try:
-                self.scaler = joblib.load(scaler_path)
-                self.model = joblib.load(svc_path)
-            except Exception as e:
-                st.error(f"模型加载失败: {e}")
-                self.scaler = None
-                self.model = None
-            
-            # 特征列配置
-            self.static_cols = ["产品质量指标_Sn%", "添加比例", "一甲%"]
-            self.time_series_cols = [
-                "黄度值_3min", "6min", "9min", "12min",
-                "15min", "18min", "21min", "24min"
-            ]
-            self.eng_features = [
-                'seq_length', 'max_value', 'mean_value', 'min_value',
-                'std_value', 'trend', 'range_value', 'autocorr'
-            ]
-            self.imputer = SimpleImputer(strategy="mean")
+    # 应用样式和标题
+    apply_global_styles()
+    render_global_header()
     
-        def _truncate(self, df):
-            time_cols = [col for col in df.columns if "min" in col.lower()]
-            time_cols_ordered = [col for col in df.columns if col in time_cols]
-            if time_cols_ordered:
-                row = df.iloc[0][time_cols_ordered]
-                if row.notna().any():
-                    max_idx = row.idxmax()
-                    max_pos = time_cols_ordered.index(max_idx)
-                    for col in time_cols_ordered[max_pos + 1:]:
-                        df.at[df.index[0], col] = np.nan
-            return df
-        
-        def _get_slope(self, row, col=None):
-            # col 是可选的，将被忽略
-            x = np.arange(len(row))
-            y = row.values
-            mask = ~np.isnan(y)
-            if sum(mask) >= 2:
-                return stats.linregress(x[mask], y[mask])[0]
-            return np.nan
-    
-        def _calc_autocorr(self, row):
-            """计算一阶自相关系数"""
-            values = row.dropna().values
-            if len(values) > 1:
-                n = len(values)
-                mean = np.mean(values)
-                numerator = sum((values[:-1] - mean) * (values[1:] - mean))
-                denominator = sum((values - mean) ** 2)
-                if denominator != 0:
-                    return numerator / denominator
-            return np.nan
-    
-        def _extract_time_series_features(self, df):
-            """修复后的时序特征提取"""
-            time_data = df[self.time_series_cols]
-            time_data_filled = time_data.ffill(axis=1)
-            
-            features = pd.DataFrame()
-            features['seq_length'] = time_data_filled.notna().sum(axis=1)
-            features['max_value'] = time_data_filled.max(axis=1)
-            features['mean_value'] = time_data_filled.mean(axis=1)
-            features['min_value'] = time_data_filled.min(axis=1)
-            features['std_value'] = time_data_filled.std(axis=1)
-            features['range_value'] = features['max_value'] - features['min_value']
-            features['trend'] = time_data_filled.apply(self._get_slope, axis=1)
-            features['autocorr'] = time_data_filled.apply(self._calc_autocorr, axis=1)
-            return features
-    
-        def predict_one(self, sample):
-            if self.scaler is None or self.model is None:
-                st.error("模型未正确加载，无法预测")
-                return None
-                
-            full_cols = self.static_cols + self.time_series_cols
-            df = pd.DataFrame([sample], columns=full_cols)
-            df = self._truncate(df)
-            
-            # 特征合并
-            static_features = df[self.static_cols]
-            time_features = self._extract_time_series_features(df)
-            feature_df = pd.concat([static_features, time_features], axis=1)
-            feature_df = feature_df[self.static_cols + self.eng_features]
-            
-            # 验证维度
-            if feature_df.shape[1] != self.scaler.n_features_in_:
-                st.error(f"特征维度不匹配！当前：{feature_df.shape[1]}，需要：{self.scaler.n_features_in_}")
-                return None
-            
-            X_scaled = self.scaler.transform(feature_df)
-            return self.model.predict(X_scaled)[0]
-
     # 侧边栏主导航
     with st.sidebar:
         st.title("导航菜单")
-        page = st.selectbox(
-            "🔧 主功能选择",
+        page = st.radio(
+            "主功能选择",
             ["性能预测", "配方建议"],
             key="main_nav"
         )
@@ -521,8 +403,8 @@ if st.session_state.logged_in:
         # 子功能选择（仅在配方建议时显示）
         sub_page = None
         if page == "配方建议":
-            sub_page = st.selectbox(
-                "🔧 子功能选择",
+            sub_page = st.radio(
+                "子功能选择",
                 ["配方优化", "添加剂推荐"],
                 key="sub_nav"
             )
@@ -533,471 +415,28 @@ if st.session_state.logged_in:
             st.success("已成功退出登录")
             st.rerun()
 
-    # 缓存模型加载
-    @st.cache_resource
-    def load_models():
-        try:
-            # 确保模型文件路径正确
-            loi_data = joblib.load("model_and_scaler_loi.pkl")
-            ts_data = joblib.load("model_and_scaler_ts1.pkl")
-            return {
-                "loi_model": loi_data["model"],
-                "loi_scaler": loi_data["scaler"],
-                "ts_model": ts_data["model"],
-                "ts_scaler": ts_data["scaler"],
-                "loi_features": pd.read_excel("trainrg3.xlsx").drop(columns="LOI", errors='ignore').columns.tolist(),
-                "ts_features": pd.read_excel("trainrg3TS.xlsx").drop(columns="TS", errors='ignore').columns.tolist(),
-            }
-        except Exception as e:
-            st.error(f"模型加载失败: {e}")
-            return None
-    
-    models = load_models()
-    
-    # 应用样式和标题
-    apply_global_styles()
-    render_global_header()
+    # 显示当前页面标题
+    st.subheader(f"🔮 {page}: {sub_page if sub_page else ''}")
     
     if page == "性能预测":
-        st.subheader("🔮 性能预测：基于配方预测LOI和TS")
-    
-        # 初始化 input_values
-        if 'input_values' not in st.session_state:
-            st.session_state.input_values = {}
+        # 在这里添加性能预测界面的内容
+        st.info("性能预测功能正在开发中...")
+        st.write("这是一个示例内容，实际功能将在后续版本中添加。")
         
-        # 基体材料数据
-        matrix_materials = {
-            "PP": {"name": "Polypropylene", "full_name": "Polypropylene (PP)", "range": (53.5, 99.5)},
-            "PA": {"name": "Polyamide", "full_name": "Polyamide (PA)", "range": (0, 100)},
-            "PC/ABS": {"name": "Polycarbonate/Acrylonitrile Butadiene Styrene Blend", "full_name": "Polycarbonate/Acrylonitrile Butadiene Styrene Blend (PC/ABS)", "range": (0, 100)},
-            "POM": {"name": "Polyoxymethylene", "full_name": "Polyoxymethylene (POM)", "range": (0, 100)},
-            "PBT": {"name": "Polybutylene Terephthalate", "full_name": "Polybutylene Terephthalate (PBT)", "range": (0, 100)},
-            "PVC": {"name": "Polyvinyl Chloride", "full_name": "Polyvinyl Chloride (PVC)", "range": (0, 100)},
-        }
-    
-        # 阻燃剂数据
-        flame_retardants = {
-            "AHP": {"name": "Aluminum Hyphosphite", "range": (0, 25)},
-            "CFA": {"name": "Carbon Forming agent", "range": (0, 10)},
-            "ammonium octamolybdate": {"name": "Ammonium Octamolybdate", "range": (0, 3.4)},
-            "Al(OH)3": {"name": "Aluminum Hydroxide", "range": (0, 10)},
-            "APP": {"name": "Ammonium Polyphosphate", "range": (0, 19.5)},
-            "Pentaerythritol": {"name": "Pentaerythritol", "range": (0, 1.3)},
-            "DOPO": {"name": "9,10-Dihydro-9-oxa-10-phosphaphenanthrene-10-oxide", "range": (0, 27)},
-            "XS-FR-8310": {"name": "XS-FR-8310", "range": (0, 35)},
-            "ZS": {"name": "Zinc Stannate", "range": (0, 34.5)},
-            "XiuCheng": {"name": "XiuCheng Flame Retardant", "range": (0, 35)},
-            "ZHS": {"name": "Hydroxy Zinc Stannate", "range": (0, 34.5)},
-            "ZnB": {"name": "Zinc Borate", "range": (0, 2)},
-            "antimony oxides": {"name": "Antimony Oxides", "range": (0, 2)},
-            "Mg(OH)2": {"name": "Magnesium Hydroxide", "range": (0, 34.5)},
-            "TCA": {"name": "Triazine Carbonization Agent", "range": (0, 17.4)},
-            "MPP": {"name": "Melamine Polyphosphate", "range": (0, 25)},
-            "PAPP": {"name": "Piperazine Pyrophosphate", "range": (0, 24.5)},
-            "其他": {"name": "Other", "range": (0, 100)},
-        }
-    
-        # 助剂数据
-        additives = {
-            "processing additives": {
-                "Anti-drip-agent": {"name": "Polytetrafluoroethylene Anti-dripping Agent", "range": (0, 0.3)},
-                "ZBS-PV-OA": {"name": "Zinc Borate Stabilizer PV-OA Series", "range": (0, 35)},
-                "FP-250S": {"name": "Processing Aid FP-250S (Acrylic)", "range": (0, 35)},
-            },
-            "Fillers": {
-                "wollastonite": {"name": "Wollastonite (Calcium Metasilicate)", "range": (0, 5)},
-                "SiO2": {"name": "Silicon Dioxide", "range": (0, 6)},
-            },
-            "Coupling Agents": {
-                "silane coupling agent": {"name": "Amino Silane Coupling Agent", "range": (0.5, 3)},
-            },
-            "Antioxidants": {
-                "antioxidant": {"name": "Irganox 1010 Antioxidant", "range": (0.1, 0.5)},
-            },
-            "Lubricants": {
-                "M-2200B": {"name": "Lubricant M-2200B (Ester-based)", "range": (0.5, 3)},
-            },
-            "Functional Additives": {
-                "Custom Additive": {"name": "Custom Additive", "range": (0, 5)},
-            },
-        }
-    
-        fraction_type = st.sidebar.selectbox("选择输入的单位", ["质量", "质量分数", "体积分数"])
-    
-        # 配方成分部分（基体和阻燃剂）
-        st.subheader("请选择配方成分")
-        col_matrix = st.columns([4, 3], gap="medium")
-        with col_matrix[0]:
-            st.markdown('<div id="base-material-select">', unsafe_allow_html=True)
-            selected_matrix = st.selectbox("选择基体材料", [matrix_materials[key]["full_name"] for key in matrix_materials], index=0)
-            # 获取选中基体的缩写
-            matrix_key = [key for key in matrix_materials if matrix_materials[key]["full_name"] == selected_matrix][0]
-            matrix_name = matrix_materials[matrix_key]["name"]
-            matrix_range = matrix_materials[matrix_key]["range"]
-            st.markdown(f"**推荐范围**: {matrix_range[0]} - {matrix_range[1]}")
-    
-        with col_matrix[1]:
-            unit_matrix = "g" if fraction_type == "质量" else ("%" if fraction_type == "质量分数" else "vol%")
-            st.session_state.input_values[matrix_key] = st.number_input(
-                f"{matrix_name} 含量 ({unit_matrix})", min_value=0.0, max_value=100.0, value=50.0, step=0.1
-            )
-    
-        # 阻燃剂显示
-        st.subheader("请选择阻燃剂")
-        st.markdown('<div id="base-material-select">', unsafe_allow_html=True)
-        selected_flame_retardants = st.multiselect(
-            "选择阻燃剂（必选锡酸锌和羟基锡酸锌）", 
-            [flame_retardants[key]["name"] for key in flame_retardants],
-            default=["Zinc Stannate", "Hydroxy Zinc Stannate"]
-        )
-        
-        for flame_name in selected_flame_retardants:
-            for key, value in flame_retardants.items():
-                if value["name"] == flame_name:
-                    flame_info = value
-                    with st.expander(f"{flame_info['name']} 推荐范围"):
-                        st.write(f"推荐范围：{flame_info['range'][0]} - {flame_info['range'][1]}")
-                        unit_add = "g" if fraction_type == "质量" else ("%" if fraction_type == "质量分数" else "vol%")
-                        
-                        min_val = float(flame_info['range'][0])
-                        max_val = float(flame_info['range'][1])
-                        default_value = max(min_val, 0.0)
-    
-                        st.session_state.input_values[key] = st.number_input(
-                            f"{flame_info['name']} 含量 ({unit_add})", 
-                            min_value=min_val, 
-                            max_value=max_val, 
-                            value=default_value, 
-                            step=0.1,
-                            key=f"fr_{key}"
-                        )
-    
-        # 助剂显示
-        st.subheader("选择助剂")
-        st.markdown('<div id="base-material-select">', unsafe_allow_html=True)
-        selected_additives = st.multiselect(
-            "选择助剂（可多选）", list(additives.keys()), default=[list(additives.keys())[0]]
-        )
-        
-        for category in selected_additives:
-            for ad, additive_info in additives[category].items():
-                with st.expander(f"{additive_info['name']} 推荐范围"):
-                    st.write(f"推荐范围：{additive_info['range'][0]} - {additive_info['range'][1]}")
-                    unit_additive = "g" if fraction_type == "质量" else ("%" if fraction_type == "质量分数" else "vol%")
-                    min_additive = float(additive_info["range"][0])
-                    max_additive = float(additive_info["range"][1])
-                    default_additive = max(min_additive, 0.0)
-    
-                    st.session_state.input_values[ad] = st.number_input(
-                        f"{additive_info['name']} 含量 ({unit_additive})", 
-                        min_value=min_additive, 
-                        max_value=max_additive, 
-                        value=default_additive, 
-                        step=0.1,
-                        key=f"additive_{ad}"
-                    )
-            
-            # 校验和预测
-            total = sum(st.session_state.input_values.values())
-            is_only_pp = all(v == 0 for k, v in st.session_state.input_values.items() if k != "PP")
-        
-        with st.expander("✅ 输入验证"):
-            if fraction_type in ["体积分数", "质量分数"]:
-                if abs(total - 100.0) > 1e-6:
-                    st.error(f"❗ {fraction_type}的总和必须为100%（当前：{total:.2f}%）")
-                else:
-                    st.success(f"{fraction_type}总和验证通过")
-            else:
-                st.success("成分总和验证通过")
-                if is_only_pp:
-                    st.info("检测到纯PP配方")
-        
-            # 验证配方是否包含锡酸锌或羟基锡酸锌
-            selected_flame_keys = [key for key in flame_retardants if flame_retardants[key]["name"] in selected_flame_retardants]
-            if not any("Zinc Stannate" in flame_retardants[key]["name"] or "Hydroxy Zinc Stannate" in flame_retardants[key]["name"] for key in selected_flame_keys):
-                st.error("❗ 配方必须包含锡酸锌（Zinc Stannate）或羟基锡酸锌（Hydroxy Zinc Stannate）。")
-            else:
-                st.success("配方验证通过，包含锡酸锌或羟基锡酸锌。")
-            
-            # 验证并点击“开始预测”按钮
-            if st.button("🚀 开始预测", type="primary"):
-                if models is None:
-                    st.error("模型未正确加载，无法进行预测")
-                    st.stop()
-                    
-                # 检查输入总和是否为100%
-                if fraction_type in ["体积分数", "质量分数"] and abs(total - 100.0) > 1e-6:
-                    st.error(f"预测中止：{fraction_type}的总和必须为100%")
-                    st.stop()
-        
-                # 如果是纯PP配方，直接给出模拟值
-                if is_only_pp:
-                    loi_pred = 17.5
-                    ts_pred = 35.0
-                else:
-                    # 体积分数转换为质量分数
-                    if fraction_type == "体积分数":
-                        vol_values = np.array(list(st.session_state.input_values.values()))
-                        total_mass = vol_values.sum()
-                        mass_values = vol_values * total_mass
-                        st.session_state.input_values = {k: (v / total_mass * 100) for k, v in zip(st.session_state.input_values.keys(), mass_values)}
-        
-                    # 填充缺失的特征值
-                    for feature in models["loi_features"]:
-                        if feature not in st.session_state.input_values:
-                            st.session_state.input_values[feature] = 0.0
-        
-                    loi_input = np.array([[st.session_state.input_values[f] for f in models["loi_features"]]])
-                    loi_scaled = models["loi_scaler"].transform(loi_input)
-                    loi_pred = models["loi_model"].predict(loi_scaled)[0]
-        
-                    # 处理TS预测
-                    for feature in models["ts_features"]:
-                        if feature not in st.session_state.input_values:
-                            st.session_state.input_values[feature] = 0.0
-        
-                    ts_input = np.array([[st.session_state.input_values[f] for f in models["ts_features"]]])
-                    ts_scaled = models["ts_scaler"].transform(ts_input)
-                    ts_pred = models["ts_model"].predict(ts_scaled)[0]
-        
-                # 显示预测结果
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.metric(label="LOI预测值", value=f"{loi_pred:.2f}%")
-                with col2:
-                    st.metric(label="TS预测值", value=f"{ts_pred:.2f} MPa")
-
-    
     elif page == "配方建议":
         if sub_page == "配方优化":
-            st.subheader("🧪 配方优化系统")
-            fraction_type = st.sidebar.radio(
-                "📐 单位类型",
-                ["质量", "质量分数", "体积分数"],
-                key="unit_type"
-            )
-            # 这里添加配方优化功能的代码
+            st.info("配方优化功能正在开发中...")
+            st.write("这是一个示例内容，实际功能将在后续版本中添加。")
             
         elif sub_page == "添加剂推荐":
-            st.subheader("🧪 PVC添加剂智能推荐")
-            try:
-                predictor = Predictor("scaler_fold_1.pkl", "svc_fold_1.pkl")
-            except Exception as e:
-                st.error(f"添加剂推荐模型加载失败: {e}")
-                st.stop()
-                
-            with st.expander("点击查看参考样本"):
-                st.markdown("""
-                ### 参考样本
-                以下是一些参考样本，展示了不同的输入数据及对应的推荐添加剂类型：
-                """)
-                    
-                # 参考样本数据
-                sample_data = [
-                    ["样本1", "无添加剂", 
-                        {"Sn%": 19.2, "添加比例": 0, "一甲%": 32, "黄度值_3min": 5.36, "黄度值_6min": 6.29, "黄度值_9min": 7.57, "黄度值_12min": 8.57, "黄度值_15min": 10.26, "黄度值_18min": 13.21, "黄度值_21min": 16.54, "黄度值_24min": 27.47}],
-                    ["样本2", "氯化石蜡", 
-                        {"Sn%": 18.5, "添加比例": 3.64, "一甲%": 31.05, "黄度值_3min": 5.29, "黄度值_6min": 6.83, "黄度值_9min": 8.00, "黄度值_12min": 9.32, "黄度值_15min": 11.40, "黄度值_18min": 14.12, "黄度值_21min": 18.37, "黄度值_24min": 30.29}],
-                    ["样本3", "EA15（市售液体钙锌稳定剂）", 
-                        {"Sn%": 19, "添加比例": 1.041666667, "一甲%": 31.88, "黄度值_3min": 5.24, "黄度值_6min": 6.17, "黄度值_9min": 7.11, "黄度值_12min": 8.95, "黄度值_15min": 10.33, "黄度值_18min": 13.21, "黄度值_21min": 17.48, "黄度值_24min": 28.08}]
-                ]
-        
-                # 为每个样本创建一个独立的表格
-                for sample in sample_data:
-                    sample_name, additive, features = sample
-                    st.markdown(f"#### {sample_name} - {additive}")
-                        
-                    # 创建表格数据
-                    table_data = []
-                    for key, value in features.items():
-                        if "黄度值" in key:
-                            continue  # 跳过黄度值列
-                        table_data.append([key, value])
-                    
-                    # 添加推荐信息
-                    table_data.append(["推荐添加剂", additive])
-                    
-                    # 显示表格
-                    df_sample = pd.DataFrame(table_data, columns=["特征", "值"])
-                    st.table(df_sample)
-        
-            # 修改黄度值输入为独立输入
-            with st.form("additive_form"):
-                # 基础参数三栏布局
-                st.markdown("### 基础参数")
-                col_static = st.columns(3)
-                
-                with col_static[0]:
-                    add_ratio = st.number_input(
-                        "添加比例 (%)", 
-                        min_value=0.0,
-                        max_value=100.0,
-                        value=3.64,
-                        step=0.1,
-                        help="推荐范围：0.5%~5%"
-                    )
-                
-                with col_static[1]:
-                    sn_percent = st.number_input(
-                        "Sn含量 (%)", 
-                        min_value=0.0, 
-                        max_value=100.0,
-                        value=18.5,
-                        step=0.1,
-                        help="锡含量范围：0%~100%"
-                    )
-                
-                with col_static[2]:
-                    yijia_percent = st.number_input(
-                        "一甲含量 (%)",
-                        min_value=0.0,
-                        max_value=100.0,
-                        value=31.05,
-                        step=0.1,
-                        help="一甲胺含量范围：15.1%~32%"
-                    )
-        
-                # 黄度值布局
-                st.markdown("### 黄度值")
-                cols = st.columns(2)
-                yellow_values = {}
-                
-                # 第一列
-                with cols[0]:
-                    yellow_values["3min"] = st.number_input(
-                        "3min 黄度值",
-                        min_value=0.0,
-                        max_value=100.0,
-                        value=5.29,
-                        step=0.1
-                    )
-                    yellow_values["6min"] = st.number_input(
-                        "6min 黄度值",
-                        min_value=0.0,
-                        max_value=100.0,
-                        value=6.83,
-                        step=0.1
-                    )
-                    yellow_values["9min"] = st.number_input(
-                        "9min 黄度值",
-                        min_value=0.0,
-                        max_value=100.0,
-                        value=8.00,
-                        step=0.1
-                    )
-                    yellow_values["12min"] = st.number_input(
-                        "12min 黄度值",
-                        min_value=0.0,
-                        max_value=100.0,
-                        value=9.32,
-                        step=0.1
-                    )
-        
-                # 第二列
-                with cols[1]:
-                    yellow_values["15min"] = st.number_input(
-                        "15min 黄度值",
-                        min_value=0.0,
-                        max_value=100.0,
-                        value=11.40,
-                        step=0.1
-                    )
-                    yellow_values["18min"] = st.number_input(
-                        "18min 黄度值",
-                        min_value=0.0,
-                        max_value=100.0,
-                        value=14.12,
-                        step=0.1
-                    )
-                    yellow_values["21min"] = st.number_input(
-                        "21min 黄度值",
-                        min_value=0.0,
-                        max_value=100.0,
-                        value=18.37,
-                        step=0.1
-                    )
-                    yellow_values["24min"] = st.number_input(
-                        "24min 黄度值",
-                        min_value=0.0,
-                        max_value=100.0,
-                        value=30.29,
-                        step=0.1
-                    )
-        
-                submit_btn = st.form_submit_button("🚀 生成推荐方案")
-                
-            if submit_btn:
-                # 构建输入样本
-                sample = [
-                    sn_percent, add_ratio, yijia_percent,
-                    yellow_values["3min"], yellow_values["6min"],
-                    yellow_values["9min"], yellow_values["12min"],
-                    yellow_values["15min"], yellow_values["18min"],
-                    yellow_values["21min"], yellow_values["24min"]
-                ]
-                
-                # 进行预测
-                prediction = predictor.predict_one(sample)
-                if prediction is None:
-                    st.error("预测失败，请检查输入数据")
-                    st.stop()
-                    
-                result_map = {
-                    1: "无推荐添加剂", 
-                    2: "氯化石蜡", 
-                    3: "EA12（脂肪酸复合醇酯）",
-                    4: "EA15（市售液体钙锌稳定剂）", 
-                    5: "EA16（环氧大豆油）",
-                    6: "G70L（多官能团的脂肪酸复合酯混合物）", 
-                    7: "EA6（亚磷酸酯）"
-                }
-                
-                additive_name = result_map.get(prediction, "未知添加剂")
-    
-                # 构建配方表
-                formula_data = [
-                    ["PVC", 100.00],
-                    ["加工助剂ACR", 1.00],
-                    ["外滑剂70S", 0.35],
-                    ["MBS", 5.00],
-                    ["316A", 0.20],
-                    ["稳定剂（锡）", round((sn_percent / 100) * 1.00, 4)],
-                    ["稳定剂（一甲）", round((yijia_percent / 100) * 1.00, 4)]
-                ]
-                
-                # 添加添加剂
-                if prediction != 1:
-                    formula_data.append([f"{additive_name}", round(add_ratio, 4)])
-                
-                # 创建格式化表格
-                df = pd.DataFrame(formula_data, columns=["材料名称", "份数（基于PVC 100份）"])
-                
-                # 展示推荐结果
-                col1, col2 = st.columns([1, 2])
-                with col1:
-                    st.markdown(f"### **推荐添加剂类型**", unsafe_allow_html=True)
-                    st.markdown(f"<span style='font-size: 20px; color: green; font-weight: bold;'>{additive_name}</span>", unsafe_allow_html=True)
-                    st.metric("建议添加量", 
-                                f"{add_ratio:.2f} 份" if prediction != 1 else "0.00 份",
-                                delta="无添加" if prediction == 1 else None)
-                with col2:
-                    st.markdown("### **完整配方表（基于PVC 100份）**", unsafe_allow_html=True)
-                    st.dataframe(df,
-                                    use_container_width=True,
-                                    height=280,
-                                    column_config={
-                                        "材料名称": "材料名称",
-                                        "份数（基于PVC 100份）": st.column_config.NumberColumn(
-                                            "份数",
-                                            format="%.4f"
-                                        )
-                                    })
+            st.info("添加剂推荐功能正在开发中...")
+            st.write("这是一个示例内容，实际功能将在后续版本中添加。")
 
 # 添加页脚
 def add_footer():
     st.markdown("""
     <hr>
-    <footer style="text-align: center;">
+    <footer style="text-align: center; padding: 1rem; margin-top: 2rem;">
         <p>© 2025 阻燃聚合物复合材料智能设计平台</p>
         <p>声明：本平台仅供学术研究、技术验证等非营利性科研活动使用，严禁用于任何商业用途。</p>
     </footer>
