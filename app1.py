@@ -11,7 +11,37 @@ from scipy import stats
 from sklearn.impute import SimpleImputer
 from deap import base, creator, tools, algorithms
 import random
-
+def set_security_headers():
+    """设置安全相关的HTTP响应头"""
+    st.markdown("""
+    <script>
+    // 设置安全相关的HTTP响应头
+    (function() {
+        // 设置X-Content-Type-Options头
+        const meta = document.createElement('meta');
+        meta.httpEquiv = "X-Content-Type-Options";
+        meta.content = "nosniff";
+        document.head.appendChild(meta);
+        
+        // 设置其他安全头
+        const securityHeaders = [
+            {name: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains"},
+            {name: "X-XSS-Protection", value: "1; mode=block"},
+            {name: "X-Frame-Options", value: "SAMEORIGIN"},
+            {name: "Content-Security-Policy", value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:;"},
+            {name: "Referrer-Policy", value: "no-referrer-when-downgrade"},
+            {name: "Permissions-Policy", value: "geolocation=(), camera=(), microphone=()"}
+        ];
+        
+        securityHeaders.forEach(header => {
+            const metaHeader = document.createElement('meta');
+            metaHeader.httpEquiv = header.name;
+            metaHeader.content = header.value;
+            document.head.appendChild(metaHeader);
+        });
+    })();
+    </script>
+    """, unsafe_allow_html=True)
 # --------------------- 初始化函数 ---------------------
 def image_to_base64(image_path):
     """将图片转换为Base64编码"""
