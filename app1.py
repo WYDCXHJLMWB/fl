@@ -260,7 +260,7 @@ def show_homepage():
         </div>
         """, unsafe_allow_html=True)
 
-        # 核心功能
+        # 核心功能 - 修复了这里的HTML标签问题
         st.markdown("""
         <h2 class="section-title">🌟 核心功能</h2>
         <div class="feature-card">
@@ -270,7 +270,7 @@ def show_homepage():
             <p style="font-size:1.5rem;">
                 • 支持LOI（极限氧指数）预测<br>
                 • TS（拉伸强度）预测<br>
-            </p>
+            </p>  <!-- 修复了这里缺少的闭合标签 -->
         </div>
 
         <div class="feature-card">
@@ -283,29 +283,20 @@ def show_homepage():
                 • 添加剂比例智能推荐
             </p>
         </div>
+        """, unsafe_allow_html=True)
 
         # 研究成果
-        # 核心功能部分修改如下：
         st.markdown("""
-        <h2 class="section-title">🌟 核心功能</h2>
+        <h2 class="section-title">🏆 研究成果</h2>
         <div class="feature-card">
-            <h3 style="font-size:1.8rem; color:var(--primary); margin:0 0 1rem 0;">
-                🔥 智能性能预测
-            </h3>
             <p style="font-size:1.5rem;">
-                • 支持LOI（极限氧指数）预测<br>
-                • TS（拉伸强度）预测<br>
-            </p>  <!-- 这里添加了闭合标签 -->
-        </div>
-        
-        <div class="feature-card">
-            <h3 style="font-size:1.8rem; color:var(--primary); margin:0 0 1rem 0;">
-                ⚗️ 配方优化系统
-            </h3>
-            <p style="font-size:1.5rem;">
-                • 根据输入目标推荐配方<br>
-                • 支持选择配方种类<br>
-                • 添加剂比例智能推荐
+                Ma Weibin, Li Ling, Zhang Yu, et al.<br>
+                <em>Active learning-based generative design of halogen-free flame-retardant polymeric composites.</em><br>
+                <strong>Journal of Materials Informatics</strong> 2025;5:09.<br>
+                DOI: <a href="https://doi.org/10.20517/jmi.2025.09" target="_blank" 
+                     style="color:var(--secondary); text-decoration:underline;">
+                    10.20517/jmi.2025.09
+                </a>
             </p>
         </div>
         """, unsafe_allow_html=True)
