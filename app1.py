@@ -466,24 +466,24 @@ if st.session_state.logged_in:
     
         # 阻燃剂数据
         flame_retardants = {
-            "AHP": {"name": "次磷酸铝", "range": (0, 25)},
-            "CFA": {"name": "成炭剂", "range": (0, 10)},
-            "APP": {"name": "聚磷酸铵", "range": (0, 19.5)},
-            "Pentaerythritol": {"name": "季戊四醇", "range": (0, 1.3)},
-            "DOPO": {"name": "DOPO阻燃剂", "range": (0, 27)},
-            "ZS": {"name": "锡酸锌", "range": (0, 34.5)},
-            "ZHS": {"name": "羟基锡酸锌", "range": (0, 34.5)},
-            "ZnB": {"name": "硼酸锌", "range": (0, 2)},
+            "AHP": {"name": "次磷酸铝", "range": (0.0, 25.0)},
+            "CFA": {"name": "成炭剂", "range": (0.0, 10.0)},
+            "APP": {"name": "聚磷酸铵", "range": (0.0, 19.5)},
+            "Pentaerythritol": {"name": "季戊四醇", "range": (0.0, 1.3)},
+            "DOPO": {"name": "DOPO阻燃剂", "range": (0.0, 27.0)},
+            "ZS": {"name": "锡酸锌", "range": (0.0, 34.5)},
+            "ZHS": {"name": "羟基锡酸锌", "range": (0.0, 34.5)},
+            "ZnB": {"name": "硼酸锌", "range": (0.0, 2.0)},
         }
     
         # 助剂数据
         additives = {
-            "Anti-drip-agent": {"name": "抗滴落剂", "range": (0, 0.3)},
-            "wollastonite": {"name": "硅灰石", "range": (0, 5)},
-            "SiO2": {"name": "二氧化硅", "range": (0, 6)},
-            "silane coupling agent": {"name": "硅烷偶联剂", "range": (0.5, 3)},
+            "Anti-drip-agent": {"name": "抗滴落剂", "range": (0.0, 0.3)},
+            "wollastonite": {"name": "硅灰石", "range": (0.0, 5.0)},
+            "SiO2": {"name": "二氧化硅", "range": (0.0, 6.0)},
+            "silane coupling agent": {"name": "硅烷偶联剂", "range": (0.5, 3.0)},
             "antioxidant": {"name": "抗氧剂", "range": (0.1, 0.5)},
-            "M-2200B": {"name": "润滑剂M-2200B", "range": (0.5, 3)},
+            "M-2200B": {"name": "润滑剂M-2200B", "range": (0.5, 3.0)},
         }
     
         fraction_type = st.sidebar.selectbox("选择输入的单位", ["质量分数", "质量", "体积分数"])
@@ -495,13 +495,17 @@ if st.session_state.logged_in:
         selected_matrix = st.selectbox("选择基体材料", list(matrix_materials.keys()))
         matrix_info = matrix_materials[selected_matrix]
         unit_matrix = get_unit(fraction_type)
-        st.session_state.input_values[selected_matrix] = st.number_input(
+        
+        # 确保使用浮点数
+        matrix_value = st.number_input(
             f"{matrix_info['name']} 含量 ({unit_matrix})", 
             min_value=0.0, 
             max_value=100.0, 
             value=70.0, 
-            step=0.1
+            step=0.1,
+            format="%.1f"
         )
+        st.session_state.input_values[selected_matrix] = float(matrix_value)
     
         # 阻燃剂选择
         st.subheader("阻燃剂")
@@ -514,13 +518,18 @@ if st.session_state.logged_in:
         for fr in selected_fr:
             fr_info = flame_retardants[fr]
             unit_fr = get_unit(fraction_type)
-            st.session_state.input_values[fr] = st.number_input(
+            
+            # 确保使用浮点数
+            fr_value = st.number_input(
                 f"{fr_info['name']} 含量 ({unit_fr})", 
                 min_value=0.0, 
                 max_value=fr_info["range"][1], 
                 value=fr_info["range"][0], 
-                step=0.1
+                step=0.1,
+                format="%.1f",
+                key=f"fr_{fr}"
             )
+            st.session_state.input_values[fr] = float(fr_value)
     
         # 助剂选择
         st.subheader("助剂")
@@ -533,13 +542,18 @@ if st.session_state.logged_in:
         for add in selected_add:
             add_info = additives[add]
             unit_add = get_unit(fraction_type)
-            st.session_state.input_values[add] = st.number_input(
+            
+            # 确保使用浮点数
+            add_value = st.number_input(
                 f"{add_info['name']} 含量 ({unit_add})", 
                 min_value=0.0, 
                 max_value=add_info["range"][1], 
                 value=add_info["range"][0], 
-                step=0.1
+                step=0.1,
+                format="%.1f",
+                key=f"add_{add}"
             )
+            st.session_state.input_values[add] = float(add_value)
             
         # 校验和预测
         total = sum(st.session_state.input_values.values())  # 总和计算
@@ -613,13 +627,13 @@ if st.session_state.logged_in:
             # 参考样本数据
             sample_data = [
                 {"样本名称": "样本1", "推荐添加剂": "无添加剂", 
-                 "Sn%": 19.2, "添加比例": 0, "一甲%": 32, 
+                 "Sn%": 19.2, "添加比例": 0.0, "一甲%": 32.0, 
                  "黄度值": [5.36, 6.29, 7.57, 8.57, 10.26, 13.21, 16.54, 27.47]},
                 {"样本名称": "样本2", "推荐添加剂": "氯化石蜡", 
                  "Sn%": 18.5, "添加比例": 3.64, "一甲%": 31.05, 
                  "黄度值": [5.29, 6.83, 8.00, 9.32, 11.40, 14.12, 18.37, 30.29]},
                 {"样本名称": "样本3", "推荐添加剂": "EA15（市售液体钙锌稳定剂）", 
-                 "Sn%": 19, "添加比例": 1.04, "一甲%": 31.88, 
+                 "Sn%": 19.0, "添加比例": 1.04, "一甲%": 31.88, 
                  "黄度值": [5.24, 6.17, 7.11, 8.95, 10.33, 13.21, 17.48, 28.08]}
             ]
             
@@ -649,7 +663,8 @@ if st.session_state.logged_in:
                     min_value=0.0,
                     max_value=100.0,
                     value=3.64,
-                    step=0.1
+                    step=0.1,
+                    format="%.2f"
                 )
             with col2:
                 sn_percent = st.number_input(
@@ -657,7 +672,8 @@ if st.session_state.logged_in:
                     min_value=0.0, 
                     max_value=100.0,
                     value=18.5,
-                    step=0.1
+                    step=0.1,
+                    format="%.1f"
                 )
             with col3:
                 yijia_percent = st.number_input(
@@ -665,7 +681,8 @@ if st.session_state.logged_in:
                     min_value=0.0,
                     max_value=100.0,
                     value=31.05,
-                    step=0.1
+                    step=0.1,
+                    format="%.2f"
                 )
             
             # 黄度值
@@ -682,6 +699,7 @@ if st.session_state.logged_in:
                         max_value=100.0,
                         value=5.29 + i * 3,
                         step=0.1,
+                        format="%.2f",
                         key=f"yellow_{time}"
                     )
             
