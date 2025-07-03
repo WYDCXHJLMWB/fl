@@ -7,49 +7,6 @@ import numpy as np
 from scipy import stats
 from sklearn.impute import SimpleImputer
 
-# --------------------- 安全头设置 ---------------------
-def set_security_headers():
-    """设置安全相关的HTTP响应头"""
-    st.markdown("""
-    <script>
-    // 设置安全相关的HTTP响应头
-    (function() {
-        // 设置X-Content-Type-Options头
-        const meta = document.createElement('meta');
-        meta.httpEquiv = "X-Content-Type-Options";
-        meta.content = "nosniff";
-        document.head.appendChild(meta);
-        
-        // 设置其他安全头
-        const securityHeaders = [
-            {name: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains"},
-            {name: "X-XSS-Protection", value: "1; mode=block"},
-            {name: "X-Frame-Options", value: "SAMEORIGIN"},
-            {name: "Content-Security-Policy", value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"},
-            {name: "Referrer-Policy", value: "no-referrer-when-downgrade"},
-            {name: "Permissions-Policy", value: "geolocation=(), camera=(), microphone=()"}
-        ];
-        
-        securityHeaders.forEach(header => {
-            const metaHeader = document.createElement('meta');
-            metaHeader.httpEquiv = header.name;
-            metaHeader.content = header.value;
-            document.head.appendChild(metaHeader);
-        });
-    })();
-    </script>
-    """, unsafe_allow_html=True)
-
-# 在应用开头设置安全头
-set_security_headers()
-
-# --------------------- 全局配置 ---------------------
-st.set_page_config(
-    page_title="阻燃聚合物复合材料智能设计平台",
-    layout="wide",
-    page_icon="🔥"  # 使用内置表情符号作为图标
-)
-
 # --------------------- 用户认证模块 ---------------------
 USERS_FILE = "users.csv"
 if not os.path.exists(USERS_FILE):
@@ -97,23 +54,11 @@ def apply_global_styles():
     """简洁现代的样式方案"""
     st.markdown("""
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    """, unsafe_allow_html=True)
-    
-    st.markdown("""
     <style>
         /* 主背景色 */
         .stApp {
             background-color: #f8f9fa;
-        }
-        
-        /* 主容器样式 */
-        .main-container {
-            max-width: 1400px;
-            margin: 2rem auto;
-            padding: 2rem;
-            border-radius: 16px;
-            background-color: white;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         /* 标题样式 */
@@ -121,12 +66,14 @@ def apply_global_styles():
             color: #1e3d59;
             margin-bottom: 0.5rem;
             font-size: 2.8rem !important;
+            text-align: center;
         }
         
         .global-header p {
             color: #4a6572;
             font-size: 1.5rem !important;
             margin-top: 0;
+            text-align: center;
         }
         
         /* 卡片样式 */
@@ -137,12 +84,6 @@ def apply_global_styles():
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             margin-bottom: 1.5rem;
             border-left: 4px solid #3f87a6;
-            transition: all 0.3s ease;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
         }
         
         /* 输入框样式 */
@@ -164,7 +105,6 @@ def apply_global_styles():
         
         .stButton button:hover {
             background-color: #2c6a8a !important;
-            transform: scale(1.02);
         }
         
         /* 页脚样式 */
@@ -174,6 +114,7 @@ def apply_global_styles():
             border-top: 1px solid #eaeaea;
             color: #6c757d;
             font-size: 0.9rem;
+            text-align: center;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -181,7 +122,7 @@ def apply_global_styles():
 def render_global_header():
     """渲染全局头部组件"""
     st.markdown("""
-    <div class="global-header" style="text-align: center; margin-bottom: 2rem;">
+    <div class="global-header">
         <h1>阻燃聚合物复合材料智能设计平台</h1>
         <p>Flame Retardant Composites AI Platform</p>
     </div>
@@ -193,7 +134,9 @@ def show_homepage():
     render_global_header()
     
     # 主内容容器
-    st.markdown('<div class="main-container">', unsafe_allow_html=True)
+    st.markdown("""
+    <div style="max-width:1400px; margin:0 auto; padding:2rem;">
+    """, unsafe_allow_html=True)
 
     # 平台简介
     st.markdown("""
@@ -817,7 +760,7 @@ if st.session_state.logged_in:
     # 添加页脚
     st.markdown("""
     <hr>
-    <footer style="text-align: center; margin-top: 3rem;">
+    <footer>
         <p>© 2025 阻燃聚合物复合材料智能设计平台</p>
         <p>声明：本平台仅供学术研究、技术验证等非营利性科研活动使用，严禁用于任何商业用途。</p>
     </footer>
