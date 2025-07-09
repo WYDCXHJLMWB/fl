@@ -215,6 +215,8 @@ def show_homepage():
                 PolyDesign <br>
                 马维宾 | 李凌 | 张瑜<br>
                 宋娜 | 丁鹏
+                上海大学计算机学院<br>
+                韩越兴|李睿杰
             </p>
         </div>
         """, unsafe_allow_html=True)
