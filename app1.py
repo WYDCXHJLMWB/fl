@@ -753,20 +753,20 @@ if st.session_state.logged_in:
                     st.markdown(f"### **在添加剂比例为{additive_amount:.2f}/100 份时，推荐添加剂种类为**")
                     st.markdown(f"<div style='font-size:24px; color:#3f87a6; font-weight:bold; margin:10px 0;'>{additive_name}</div>", unsafe_allow_html=True)
                 
-            with col_table:
-                st.markdown("### **完整配方表**")
-                st.dataframe(
-                    df, 
-                    use_container_width=True,
-                    hide_index=True,
-                    column_config={
-                        "材料名称": "材料名称",
-                        "份数（基于PVC 100份）": st.column_config.NumberColumn(
-                            "份数",
-                            format="%.4f"
-                        )
-                    }
-                )
+                with col_table:
+                    st.markdown("### **完整配方表**")
+                    st.dataframe(
+                        df, 
+                        use_container_width=True,
+                        hide_index=True,
+                        column_config={
+                            "材料名称": "材料名称",
+                            "份数（基于PVC 100份）": st.column_config.NumberColumn(
+                                "份数",
+                                format="%.4f"
+                            )
+                        }
+                    )
                     
             except Exception as e:
                 st.error(f"预测过程中出错: {str(e)}")
