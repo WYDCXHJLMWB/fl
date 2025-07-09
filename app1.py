@@ -741,8 +741,6 @@ if st.session_state.logged_in:
                     ["稳定剂", 1]
                 ]
                 
-                if prediction != 1:
-                    formula_data.append([f"{additive_name}", round(add_ratio / 100, 4)])
                 
                 # 创建格式化表格
                 df = pd.DataFrame(formula_data, columns=["材料名称", "份数（基于PVC 100份）"])
@@ -752,7 +750,7 @@ if st.session_state.logged_in:
                 col_res, col_table = st.columns([1, 2])
                 
                 with col_res:
-                    st.markdown(f"### **在添加剂比例为{additive_amount:.2f}%时，推荐添加剂种类为**")
+                    st.markdown(f"### **在添加剂比例为{(additive_amount:.2f)/100}份时，推荐添加剂种类为**")
                     st.markdown(f"<div style='font-size:24px; color:#3f87a6; font-weight:bold; margin:10px 0;'>{additive_name}</div>", unsafe_allow_html=True)
                 
                 with col_table:
