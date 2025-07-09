@@ -722,8 +722,8 @@ if st.session_state.logged_in:
                     1: "无推荐添加剂", 
                     2: "氯化石蜡", 
                     3: "EA12（脂肪酸复合醇酯）",
-                    4: "EA15（市售液体钙锌稳定剂）", 
-                    5: "EA16（环氧大豆油）",
+                    4: "EA15（液体钙锌稳定剂）", 
+                    5: "EA16（环氧化合物）",
                     6: "G70L（多官能团的脂肪酸复合酯混合物）", 
                     7: "EA6（亚磷酸酯）"
                 }
@@ -738,8 +738,7 @@ if st.session_state.logged_in:
                     ["外滑剂70S", 0.35],
                     ["MBS", 5.00],
                     ["316A", 0.20],
-                    ["稳定剂（锡）", round((sn_percent / 100) * 1.00, 4)],
-                    ["稳定剂（一甲）", round((yijia_percent / 100) * 1.00, 4)]
+                    ["稳定剂", 1]
                 ]
                 
                 if prediction != 1:
@@ -753,9 +752,8 @@ if st.session_state.logged_in:
                 col_res, col_table = st.columns([1, 2])
                 
                 with col_res:
-                    st.markdown(f"### **推荐添加剂**")
+                    st.markdown(f"### **在添加剂比例为{additive_amount:.2f}%时，推荐添加剂种类为**")
                     st.markdown(f"<div style='font-size:24px; color:#3f87a6; font-weight:bold; margin:10px 0;'>{additive_name}</div>", unsafe_allow_html=True)
-                    st.metric("建议添加量", f"{additive_amount:.2f}%")
                 
                 with col_table:
                     st.markdown("### **完整配方表**")
