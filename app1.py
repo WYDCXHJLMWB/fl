@@ -730,7 +730,7 @@ if st.session_state.logged_in:
                 
                 additive_name = result_map.get(prediction, "未知类型")
                 additive_amount = add_ratio if prediction != 1 else 0.0
-                
+                 additive_amount = add_ratio / 100
                 # 构建配方表
                 formula_data = [
                     ["PVC", 100.00],
@@ -750,7 +750,7 @@ if st.session_state.logged_in:
                 col_res, col_table = st.columns([1, 2])
                 
                 with col_res:
-                    st.markdown(f"### **在添加剂比例为{additive_amount:.2f}/100 份时，推荐添加剂种类为**")
+                    st.markdown(f"### **在添加剂比例为{additive_amount:.4f} 份时，推荐添加剂种类为**")
                     st.markdown(f"<div style='font-size:24px; color:#3f87a6; font-weight:bold; margin:10px 0;'>{additive_name}</div>", unsafe_allow_html=True)
                 
                 with col_table:
