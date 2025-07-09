@@ -676,17 +676,15 @@ if st.session_state.logged_in:
                     format="%.1f"
                 )
             with col3:
-                yijia_percent = st.number_input(
-                    "一甲含量 (%)",
-                    min_value=0.0,
-                    max_value=100.0,
-                    value=31.05,
-                    step=0.1,
-                    format="%.2f"
-                )
+                # 根据锡含量计算一甲含量：一甲% = Sn% / 0.6
+                yijia_calculated = sn_percent / 0.6
+                st.markdown("**一甲含量（计算值）**")
+                st.markdown(f"`{yijia_calculated:.2f} %`")
+                st.caption("根据公式：一甲含量 = Sn含量 / 0.6")
+                    )
             
             # 黄度值
-            st.subheader("黄度值随时间变化")
+            st.subheader("黄度值随时间变化（请尽可能提供足够多的时序黄度值，黄度值必须单调递增）")
             yellow_cols = st.columns(4)
             yellow_values = {}
             times = [3, 6, 9, 12, 15, 18, 21, 24]
