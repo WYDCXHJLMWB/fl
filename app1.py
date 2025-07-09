@@ -681,8 +681,7 @@ if st.session_state.logged_in:
                 st.markdown("**一甲含量（计算值）**")
                 st.markdown(f"`{yijia_calculated:.2f} %`")
                 st.caption("根据公式：一甲含量 = Sn含量 / 0.6")
-                    )
-            
+                            
             # 黄度值
             st.subheader("黄度值随时间变化（请尽可能提供足够多的时序黄度值，黄度值必须单调递增）")
             yellow_cols = st.columns(4)
