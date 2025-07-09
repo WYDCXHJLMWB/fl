@@ -214,9 +214,9 @@ def show_homepage():
                 上海大学功能高分子<br>
                 PolyDesign <br>
                 马维宾 | 李凌 | 张瑜<br>
-                宋娜 | 丁鹏
+                宋娜 | 丁鹏<br>
                 上海大学计算机学院<br>
-                韩越兴|李睿杰
+                韩越兴|李睿杰<br>
             </p>
         </div>
         """, unsafe_allow_html=True)
