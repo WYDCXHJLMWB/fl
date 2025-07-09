@@ -705,7 +705,9 @@ if st.session_state.logged_in:
         if submit_btn:
             # 构建输入样本
             sample = [
-                sn_percent, add_ratio, yijia_percent,
+                sn_percent, 
+                add_ratio, 
+                yijia_calculated,  # 使用计算的一甲含量
                 yellow_values[3], yellow_values[6],
                 yellow_values[9], yellow_values[12],
                 yellow_values[15], yellow_values[18],
