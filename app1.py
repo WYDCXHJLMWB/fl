@@ -730,7 +730,7 @@ if st.session_state.logged_in:
                 
                 additive_name = result_map.get(prediction, "未知类型")
                 additive_amount = add_ratio if prediction != 1 else 0.0
-                 additive_amount = add_ratio / 100
+                additive_amount = add_ratio / 100
                 # 构建配方表
                 formula_data = [
                     ["PVC", 100.00],
