@@ -595,35 +595,56 @@ if st.session_state.logged_in:
                         # 计算质量分数 = (各成分体积分数/总体积分数) * 100
                         mass_fractions = (vol_values / total_vol) * 100
                         # 更新输入值为质量分数
-                        st.session_state.input_values = {k: v for k, v in zip(st.session_state.input_values.keys(), mass_fractions)}
+                        for i, key in enumerate(st.session_state.input_values.keys()):
+                            st.session_state.input_values[key] = mass_fractions[i]
         
-                    # 确保所有模型特征都存在
-                    full_feature_set = set(models["loi_features"] + models["ts_features"])
+                    # 获取模型所需的所有特征
+                    all_features = set(models["loi_features"]).union(set(models["ts_features"]))
                     
-                    # 填充缺失的特征值为0.0
-                    for feature in full_feature_set:
+                    # 确保所有特征都存在，缺失的特征设为0.0
+                    for feature in all_features:
                         if feature not in st.session_state.input_values:
                             st.session_state.input_values[feature] = 0.0
                     
                     # LOI预测
-                    loi_input = np.array([[st.session_state.input_values[f] for f in models["loi_features"]]])
-                    # 检查特征数量是否匹配
-                    if loi_input.shape[1] != len(models["loi_features"]):
-                        st.error(f"LOI输入特征数量不匹配: 输入{loi_input.shape[1]}个, 需要{len(models['loi_features'])}个")
+                    try:
+                        # 确保特征顺序与模型训练时一致
+                        loi_input = np.array([[st.session_state.input_values[f] for f in models["loi_features"]]])
+                        
+                        # 检查特征数量
+                        if loi_input.shape[1] != len(models["loi_features"]):
+                            st.error(f"LOI输入特征数量不匹配: 输入{loi_input.shape[1]}个, 需要{len(models['loi_features'])}个")
+                            st.error(f"LOI模型特征: {models['loi_features']}")
+                            st.error(f"当前输入特征: {list(st.session_state.input_values.keys())}")
+                            st.stop()
+                        
+                        loi_scaled = models["loi_scaler"].transform(loi_input)
+                        loi_pred = models["loi_model"].predict(loi_scaled)[0]
+                    except Exception as e:
+                        st.error(f"LOI预测失败: {str(e)}")
+                        st.error(f"输入数据形状: {loi_input.shape if 'loi_input' in locals() else 'N/A'}")
+                        st.error(f"模型期望特征数量: {models['loi_scaler'].n_features_in_ if hasattr(models['loi_scaler'], 'n_features_in_') else 'N/A'}")
                         st.stop()
-                    
-                    loi_scaled = models["loi_scaler"].transform(loi_input)
-                    loi_pred = models["loi_model"].predict(loi_scaled)[0]
         
                     # TS预测
-                    ts_input = np.array([[st.session_state.input_values[f] for f in models["ts_features"]]])
-                    # 检查特征数量是否匹配
-                    if ts_input.shape[1] != len(models["ts_features"]):
-                        st.error(f"TS输入特征数量不匹配: 输入{ts_input.shape[1]}个, 需要{len(models['ts_features'])}个")
+                    try:
+                        # 确保特征顺序与模型训练时一致
+                        ts_input = np.array([[st.session_state.input_values[f] for f in models["ts_features"]]])
+                        
+                        # 检查特征数量
+                        if ts_input.shape[1] != len(models["ts_features"]):
+                            st.error(f"TS输入特征数量不匹配: 输入{ts_input.shape[1]}个, 需要{len(models['ts_features'])}个")
+                            st.error(f"TS模型特征: {models['ts_features']}")
+                            st.error(f"当前输入特征: {list(st.session_state.input_values.keys())}")
+                            st.stop()
+                        
+                        ts_scaled = models["ts_scaler"].transform(ts_input)
+                        ts_pred = models["ts_model"].predict(ts_scaled)[0]
+                    except Exception as e:
+                        st.error(f"TS预测失败: {str(e)}")
+                        st.error(f"输入数据形状: {ts_input.shape if 'ts_input' in locals() else 'N/A'}")
+                        st.error(f"模型期望特征数量: {models['ts_scaler'].n_features_in_ if hasattr(models['ts_scaler'], 'n_features_in_') else 'N/A'}")
                         st.stop()
-                    
-                    ts_scaled = models["ts_scaler"].transform(ts_input)
-                    ts_pred = models["ts_model"].predict(ts_scaled)[0]
         
                 # 显示预测结果
                 st.success("预测完成！")
@@ -632,7 +653,6 @@ if st.session_state.logged_in:
                     st.metric(label="LOI预测值", value=f"{loi_pred:.2f}%", delta="极限氧指数")
                 with col2:
                     st.metric(label="TS预测值", value=f"{ts_pred:.2f} MPa", delta="拉伸强度")
-        
     elif page == "配方建议" and sub_page == "添加剂推荐":
         st.subheader("🧪 PVC添加剂智能推荐")
         predictor = Predictor("scaler_fold_1.pkl", "svc_fold_1.pkl")
