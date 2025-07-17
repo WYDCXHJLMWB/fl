@@ -457,7 +457,7 @@ if st.session_state.logged_in:
         # 初始化 input_values
         if 'input_values' not in st.session_state:
             st.session_state.input_values = {}  # 使用会话状态保存输入值
-        
+    
         # 基体材料数据
         matrix_materials = {
             "PP": {"name": "Polypropylene", "full_name": "Polypropylene (PP)", "range": (53.5, 99.5)},
@@ -578,6 +578,8 @@ if st.session_state.logged_in:
             "选择助剂（可多选）", list(additives.keys()), default=[list(additives.keys())[0]]
         )
         
+        # 初始化总和变量
+        total = 0.0
         for category in selected_additives:
             for ad, additive_info in additives[category].items():
                 with st.expander(f"{additive_info['name']} 推荐范围"):
@@ -596,11 +598,11 @@ if st.session_state.logged_in:
                         step=0.1,
                         key=f"additive_{ad}"
                     )
-            
-            # 校验和预测
-            total = sum(st.session_state.input_values.values())  # 总和计算
-            is_only_pp = all(v == 0 for k, v in st.session_state.input_values.items() if k != "PP")  # 仅PP配方检查
-        
+            # 计算总和
+            total = sum(st.session_state.input_values.values())
+            # 仅PP配方检查
+            is_only_pp = all(v == 0 for k, v in st.session_state.input_values.items() if k != "PP")
+    
         with st.expander("✅ 输入验证"):
             if fraction_type in ["体积分数", "质量分数"]:
                 if abs(total - 100.0) > 1e-6:
@@ -611,7 +613,7 @@ if st.session_state.logged_in:
                 st.success("成分总和验证通过")
                 if is_only_pp:
                     st.info("检测到纯PP配方")
-        
+    
             # 验证配方是否包含锡酸锌或羟基锡酸锌
             selected_flame_keys = [key for key in flame_retardants if flame_retardants[key]["name"] in selected_flame_retardants]
             if not any("Zinc Stannate" in flame_retardants[key]["name"] or "Hydroxy Zinc Stannate" in flame_retardants[key]["name"] for key in selected_flame_keys):
@@ -625,18 +627,23 @@ if st.session_state.logged_in:
                 if fraction_type in ["体积分数", "质量分数"] and abs(total - 100.0) > 1e-6:
                     st.error(f"预测中止：{fraction_type}的总和必须为100%")
                     st.stop()
-        
+    
                 # 如果是纯PP配方，直接给出模拟值
                 if is_only_pp:
                     loi_pred = 17.5
                     ts_pred = 35.0
                 else:
-                      if fraction_type == "体积分数":
+                    # 体积分数转换为质量分数
+                    if fraction_type == "体积分数":
                         vol_values = np.array(list(st.session_state.input_values.values()))
                         total_mass = vol_values.sum()
-                        mass_values = vol_values * total_mass  # 按比例转换
-                        st.session_state.input_values = {k: (v / total_mass * 100) for k, v in zip(st.session_state.input_values.keys(), mass_values)}
-                    
+                        if total_mass > 0:  # 避免除以零
+                            mass_values = vol_values * total_mass  # 按比例转换
+                            st.session_state.input_values = {
+                                k: (v / total_mass * 100) 
+                                for k, v in zip(st.session_state.input_values.keys(), mass_values)
+                            }
+    
                     # 填充缺失的特征值
                     loi_input_features = []
                     for feature in models["loi_features"]:
@@ -656,11 +663,11 @@ if st.session_state.logged_in:
                             ts_input_features.append(st.session_state.input_values[feature])
                         else:
                             ts_input_features.append(0.0)  # 填充默认值0
-                    
+    
                     ts_input = np.array([ts_input_features])
                     ts_scaled = models["ts_scaler"].transform(ts_input)
                     ts_pred = models["ts_model"].predict(ts_scaled)[0]
-        
+    
                 # 显示预测结果
                 col1, col2 = st.columns(2)
                 with col1:
