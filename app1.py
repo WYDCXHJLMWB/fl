@@ -659,9 +659,9 @@ if st.session_state.logged_in:
                             else:
                                 ts_input_features.append(0.0)  # 填充默认值0
 
-                ts_input = np.array([ts_input_features])
-                ts_scaled = models["ts_scaler"].transform(ts_input)
-                ts_pred = models["ts_model"].predict(ts_scaled)[0]
+                        ts_input = np.array([ts_input_features])
+                        ts_scaled = models["ts_scaler"].transform(ts_input)
+                        ts_pred = models["ts_model"].predict(ts_scaled)[0]
         
                 # 显示预测结果
                 col1, col2 = st.columns(2)
