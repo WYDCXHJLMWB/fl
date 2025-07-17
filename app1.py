@@ -631,37 +631,35 @@ if st.session_state.logged_in:
                     loi_pred = 17.5
                     ts_pred = 35.0
                 else:
-                    # 体积分数转换为质量分数
-                    if fraction_type == "体积分数":
+                      if fraction_type == "体积分数":
                         vol_values = np.array(list(st.session_state.input_values.values()))
                         total_mass = vol_values.sum()
                         mass_values = vol_values * total_mass  # 按比例转换
                         st.session_state.input_values = {k: (v / total_mass * 100) for k, v in zip(st.session_state.input_values.keys(), mass_values)}
-        
+                    
                     # 填充缺失的特征值
-# 填充缺失的特征值
-                        loi_input_features = []
-                        for feature in models["loi_features"]:
-                            if feature in st.session_state.input_values:
-                                loi_input_features.append(st.session_state.input_values[feature])
-                            else:
-                                loi_input_features.append(0.0)  # 填充默认值0
-                        
-                        loi_input = np.array([loi_input_features])
-                        loi_scaled = models["loi_scaler"].transform(loi_input)
-                        loi_pred = models["loi_model"].predict(loi_scaled)[0]
-                        
-                        # 处理TS预测
-                        ts_input_features = []
-                        for feature in models["ts_features"]:
-                            if feature in st.session_state.input_values:
-                                ts_input_features.append(st.session_state.input_values[feature])
-                            else:
-                                ts_input_features.append(0.0)  # 填充默认值0
-
-                        ts_input = np.array([ts_input_features])
-                        ts_scaled = models["ts_scaler"].transform(ts_input)
-                        ts_pred = models["ts_model"].predict(ts_scaled)[0]
+                    loi_input_features = []
+                    for feature in models["loi_features"]:
+                        if feature in st.session_state.input_values:
+                            loi_input_features.append(st.session_state.input_values[feature])
+                        else:
+                            loi_input_features.append(0.0)  # 填充默认值0
+                    
+                    loi_input = np.array([loi_input_features])
+                    loi_scaled = models["loi_scaler"].transform(loi_input)
+                    loi_pred = models["loi_model"].predict(loi_scaled)[0]
+                    
+                    # 处理TS预测
+                    ts_input_features = []
+                    for feature in models["ts_features"]:
+                        if feature in st.session_state.input_values:
+                            ts_input_features.append(st.session_state.input_values[feature])
+                        else:
+                            ts_input_features.append(0.0)  # 填充默认值0
+                    
+                    ts_input = np.array([ts_input_features])
+                    ts_scaled = models["ts_scaler"].transform(ts_input)
+                    ts_pred = models["ts_model"].predict(ts_scaled)[0]
         
                 # 显示预测结果
                 col1, col2 = st.columns(2)
