@@ -449,190 +449,190 @@ if st.session_state.logged_in:
     apply_global_styles()
     render_global_header()
       
-if page == "性能预测":
-    st.subheader("🔮 性能预测：基于配方预测LOI和TS")
-    
-    # 初始化 input_values
-    if 'input_values' not in st.session_state:
-        st.session_state.input_values = {}  # 使用会话状态保存输入值
-    
-    # 基体材料数据
-    matrix_materials = {
-        "PP": {"name": "聚丙烯(PP)", "range": (53.5, 99.5)},
-        "PA": {"name": "聚酰胺(PA)", "range": (0, 100)},
-        "PC/ABS": {"name": "聚碳酸酯/ABS合金", "range": (0, 100)},
-        "POM": {"name": "聚甲醛(POM)", "range": (0, 100)},
-        "PBT": {"name": "聚对苯二甲酸丁二醇酯(PBT)", "range": (0, 100)},
-        "PVC": {"name": "聚氯乙烯(PVC)", "range": (0, 100)},
-    }
-    
-    # 阻燃剂数据
-    flame_retardants = {
-        "AHP": {"name": "次磷酸铝", "range": (0.0, 25.0)},
-        "CFA": {"name": "成炭剂", "range": (0.0, 10.0)},
-        "APP": {"name": "聚磷酸铵", "range": (0.0, 19.5)},
-        "Pentaerythritol": {"name": "季戊四醇", "range": (0.0, 1.3)},
-        "DOPO": {"name": "DOPO阻燃剂", "range": (0.0, 27.0)},
-        "ZS": {"name": "锡酸锌", "range": (0.0, 34.5)},
-        "ZHS": {"name": "羟基锡酸锌", "range": (0.0, 34.5)},
-        "ZnB": {"name": "硼酸锌", "range": (0.0, 2.0)},
-    }
-    
-    # 助剂数据
-    additives = {
-        "Anti-drip-agent": {"name": "抗滴落剂", "range": (0.0, 0.3)},
-        "wollastonite": {"name": "硅灰石", "range": (0.0, 5.0)},
-        "SiO2": {"name": "二氧化硅", "range": (0.0, 6.0)},
-        "silane coupling agent": {"name": "硅烷偶联剂", "range": (0.5, 3.0)},
-        "antioxidant": {"name": "抗氧剂", "range": (0.1, 0.5)},
-        "M-2200B": {"name": "润滑剂M-2200B", "range": (0.5, 3.0)},
-    }
-    
-    fraction_type = st.sidebar.selectbox("选择输入的单位", ["质量分数", "质量", "体积分数"])
-    
-    # 配方成分部分（基体和阻燃剂）
-    st.subheader("配方成分")
-    
-    # 基体选择
-    selected_matrix = st.selectbox("选择基体材料", list(matrix_materials.keys()))
-    matrix_info = matrix_materials[selected_matrix]
-    unit_matrix = get_unit(fraction_type)
-    
-    # 确保使用浮点数
-    matrix_value = st.number_input(
-        f"{matrix_info['name']} 含量 ({unit_matrix})", 
-        min_value=0.0, 
-        max_value=100.0, 
-        value=70.0, 
-        step=0.1,
-        format="%.1f"
-    )
-    st.session_state.input_values[selected_matrix] = float(matrix_value)
-    
-    # 阻燃剂选择
-    st.subheader("阻燃剂")
-    selected_fr = st.multiselect(
-        "选择阻燃剂", 
-        list(flame_retardants.keys()),
-        default=["ZS"]
-    )
-    
-    for fr in selected_fr:
-        fr_info = flame_retardants[fr]
-        unit_fr = get_unit(fraction_type)
+    if page == "性能预测":
+        st.subheader("🔮 性能预测：基于配方预测LOI和TS")
+        
+        # 初始化 input_values
+        if 'input_values' not in st.session_state:
+            st.session_state.input_values = {}  # 使用会话状态保存输入值
+        
+        # 基体材料数据
+        matrix_materials = {
+            "PP": {"name": "聚丙烯(PP)", "range": (53.5, 99.5)},
+            "PA": {"name": "聚酰胺(PA)", "range": (0, 100)},
+            "PC/ABS": {"name": "聚碳酸酯/ABS合金", "range": (0, 100)},
+            "POM": {"name": "聚甲醛(POM)", "range": (0, 100)},
+            "PBT": {"name": "聚对苯二甲酸丁二醇酯(PBT)", "range": (0, 100)},
+            "PVC": {"name": "聚氯乙烯(PVC)", "range": (0, 100)},
+        }
+        
+        # 阻燃剂数据
+        flame_retardants = {
+            "AHP": {"name": "次磷酸铝", "range": (0.0, 25.0)},
+            "CFA": {"name": "成炭剂", "range": (0.0, 10.0)},
+            "APP": {"name": "聚磷酸铵", "range": (0.0, 19.5)},
+            "Pentaerythritol": {"name": "季戊四醇", "range": (0.0, 1.3)},
+            "DOPO": {"name": "DOPO阻燃剂", "range": (0.0, 27.0)},
+            "ZS": {"name": "锡酸锌", "range": (0.0, 34.5)},
+            "ZHS": {"name": "羟基锡酸锌", "range": (0.0, 34.5)},
+            "ZnB": {"name": "硼酸锌", "range": (0.0, 2.0)},
+        }
+        
+        # 助剂数据
+        additives = {
+            "Anti-drip-agent": {"name": "抗滴落剂", "range": (0.0, 0.3)},
+            "wollastonite": {"name": "硅灰石", "range": (0.0, 5.0)},
+            "SiO2": {"name": "二氧化硅", "range": (0.0, 6.0)},
+            "silane coupling agent": {"name": "硅烷偶联剂", "range": (0.5, 3.0)},
+            "antioxidant": {"name": "抗氧剂", "range": (0.1, 0.5)},
+            "M-2200B": {"name": "润滑剂M-2200B", "range": (0.5, 3.0)},
+        }
+        
+        fraction_type = st.sidebar.selectbox("选择输入的单位", ["质量分数", "质量", "体积分数"])
+        
+        # 配方成分部分（基体和阻燃剂）
+        st.subheader("配方成分")
+        
+        # 基体选择
+        selected_matrix = st.selectbox("选择基体材料", list(matrix_materials.keys()))
+        matrix_info = matrix_materials[selected_matrix]
+        unit_matrix = get_unit(fraction_type)
         
         # 确保使用浮点数
-        fr_value = st.number_input(
-            f"{fr_info['name']} 含量 ({unit_fr})", 
+        matrix_value = st.number_input(
+            f"{matrix_info['name']} 含量 ({unit_matrix})", 
             min_value=0.0, 
-            max_value=fr_info["range"][1], 
-            value=fr_info["range"][0], 
+            max_value=100.0, 
+            value=70.0, 
             step=0.1,
-            format="%.1f",
-            key=f"fr_{fr}"
+            format="%.1f"
         )
-        st.session_state.input_values[fr] = float(fr_value)
-    
-    # 助剂选择
-    st.subheader("助剂")
-    selected_add = st.multiselect(
-        "选择助剂", 
-        list(additives.keys()),
-        default=["Anti-drip-agent"]
-    )
-    
-    for add in selected_add:
-        add_info = additives[add]
-        unit_add = get_unit(fraction_type)
+        st.session_state.input_values[selected_matrix] = float(matrix_value)
         
-        # 确保使用浮点数
-        add_value = st.number_input(
-            f"{add_info['name']} 含量 ({unit_add})", 
-            min_value=0.0, 
-            max_value=add_info["range"][1], 
-            value=add_info["range"][0], 
-            step=0.1,
-            format="%.1f",
-            key=f"add_{add}"
+        # 阻燃剂选择
+        st.subheader("阻燃剂")
+        selected_fr = st.multiselect(
+            "选择阻燃剂", 
+            list(flame_retardants.keys()),
+            default=["ZS"]
         )
-        st.session_state.input_values[add] = float(add_value)
         
-    # 校验和预测
-    total = sum(st.session_state.input_values.values())  # 总和计算
-    is_only_pp = all(v == 0 for k, v in st.session_state.input_values.items() if k != "PP")  # 仅PP配方检查
-
-    with st.expander("✅ 输入验证", expanded=True):
-        if fraction_type in ["体积分数", "质量分数"]:
-            if abs(total - 100.0) > 1e-6:
-                st.error(f"❗ {fraction_type}的总和必须为100%（当前：{total:.2f}%）")
+        for fr in selected_fr:
+            fr_info = flame_retardants[fr]
+            unit_fr = get_unit(fraction_type)
+            
+            # 确保使用浮点数
+            fr_value = st.number_input(
+                f"{fr_info['name']} 含量 ({unit_fr})", 
+                min_value=0.0, 
+                max_value=fr_info["range"][1], 
+                value=fr_info["range"][0], 
+                step=0.1,
+                format="%.1f",
+                key=f"fr_{fr}"
+            )
+            st.session_state.input_values[fr] = float(fr_value)
+        
+        # 助剂选择
+        st.subheader("助剂")
+        selected_add = st.multiselect(
+            "选择助剂", 
+            list(additives.keys()),
+            default=["Anti-drip-agent"]
+        )
+        
+        for add in selected_add:
+            add_info = additives[add]
+            unit_add = get_unit(fraction_type)
+            
+            # 确保使用浮点数
+            add_value = st.number_input(
+                f"{add_info['name']} 含量 ({unit_add})", 
+                min_value=0.0, 
+                max_value=add_info["range"][1], 
+                value=add_info["range"][0], 
+                step=0.1,
+                format="%.1f",
+                key=f"add_{add}"
+            )
+            st.session_state.input_values[add] = float(add_value)
+            
+        # 校验和预测
+        total = sum(st.session_state.input_values.values())  # 总和计算
+        is_only_pp = all(v == 0 for k, v in st.session_state.input_values.items() if k != "PP")  # 仅PP配方检查
+    
+        with st.expander("✅ 输入验证", expanded=True):
+            if fraction_type in ["体积分数", "质量分数"]:
+                if abs(total - 100.0) > 1e-6:
+                    st.error(f"❗ {fraction_type}的总和必须为100%（当前：{total:.2f}%）")
+                else:
+                    st.success(f"{fraction_type}总和验证通过")
             else:
-                st.success(f"{fraction_type}总和验证通过")
-        else:
-            st.success("成分总和验证通过")
-        
-        # 验证配方是否包含锡酸锌或羟基锡酸锌
-        if not any(k in ["ZS", "ZHS"] for k in st.session_state.input_values):
-            st.error("❗ 配方必须包含锡酸锌(ZS)或羟基锡酸锌(ZHS)。")
-        else:
-            st.success("配方验证通过，包含锡酸锌或羟基锡酸锌。")
-        
-        # 验证并点击"开始预测"按钮
-        if st.button("🚀 开始预测", type="primary", use_container_width=True):
-            # 检查输入总和是否为100%，如果不是则停止
-            if fraction_type in ["体积分数", "质量分数"] and abs(total - 100.0) > 1e-6:
-                st.error(f"预测中止：{fraction_type}的总和必须为100%")
-                st.stop()
-    
-            # 如果是纯PP配方，直接给出模拟值
-            if is_only_pp:
-                loi_pred = 17.5
-                ts_pred = 35.0
+                st.success("成分总和验证通过")
+            
+            # 验证配方是否包含锡酸锌或羟基锡酸锌
+            if not any(k in ["ZS", "ZHS"] for k in st.session_state.input_values):
+                st.error("❗ 配方必须包含锡酸锌(ZS)或羟基锡酸锌(ZHS)。")
             else:
-                # 体积分数转换为质量分数
-                if fraction_type == "体积分数":
-                    vol_values = np.array(list(st.session_state.input_values.values()))
-                    total_vol = vol_values.sum()
-                    # 计算质量分数 = (各成分体积分数/总体积分数) * 100
-                    mass_fractions = (vol_values / total_vol) * 100
-                    # 更新输入值为质量分数
-                    st.session_state.input_values = {k: v for k, v in zip(st.session_state.input_values.keys(), mass_fractions)}
-    
-                # 确保所有模型特征都存在
-                full_feature_set = set(models["loi_features"] + models["ts_features"])
-                
-                # 填充缺失的特征值为0.0
-                for feature in full_feature_set:
-                    if feature not in st.session_state.input_values:
-                        st.session_state.input_values[feature] = 0.0
-                
-                # LOI预测
-                loi_input = np.array([[st.session_state.input_values[f] for f in models["loi_features"]]])
-                # 检查特征数量是否匹配
-                if loi_input.shape[1] != len(models["loi_features"]):
-                    st.error(f"LOI输入特征数量不匹配: 输入{loi_input.shape[1]}个, 需要{len(models['loi_features'])}个")
+                st.success("配方验证通过，包含锡酸锌或羟基锡酸锌。")
+            
+            # 验证并点击"开始预测"按钮
+            if st.button("🚀 开始预测", type="primary", use_container_width=True):
+                # 检查输入总和是否为100%，如果不是则停止
+                if fraction_type in ["体积分数", "质量分数"] and abs(total - 100.0) > 1e-6:
+                    st.error(f"预测中止：{fraction_type}的总和必须为100%")
                     st.stop()
-                
-                loi_scaled = models["loi_scaler"].transform(loi_input)
-                loi_pred = models["loi_model"].predict(loi_scaled)[0]
-    
-                # TS预测
-                ts_input = np.array([[st.session_state.input_values[f] for f in models["ts_features"]]])
-                # 检查特征数量是否匹配
-                if ts_input.shape[1] != len(models["ts_features"]):
-                    st.error(f"TS输入特征数量不匹配: 输入{ts_input.shape[1]}个, 需要{len(models['ts_features'])}个")
-                    st.stop()
-                
-                ts_scaled = models["ts_scaler"].transform(ts_input)
-                ts_pred = models["ts_model"].predict(ts_scaled)[0]
-    
-            # 显示预测结果
-            st.success("预测完成！")
-            col1, col2 = st.columns(2)
-            with col1:
-                st.metric(label="LOI预测值", value=f"{loi_pred:.2f}%", delta="极限氧指数")
-            with col2:
-                st.metric(label="TS预测值", value=f"{ts_pred:.2f} MPa", delta="拉伸强度")
-    
+        
+                # 如果是纯PP配方，直接给出模拟值
+                if is_only_pp:
+                    loi_pred = 17.5
+                    ts_pred = 35.0
+                else:
+                    # 体积分数转换为质量分数
+                    if fraction_type == "体积分数":
+                        vol_values = np.array(list(st.session_state.input_values.values()))
+                        total_vol = vol_values.sum()
+                        # 计算质量分数 = (各成分体积分数/总体积分数) * 100
+                        mass_fractions = (vol_values / total_vol) * 100
+                        # 更新输入值为质量分数
+                        st.session_state.input_values = {k: v for k, v in zip(st.session_state.input_values.keys(), mass_fractions)}
+        
+                    # 确保所有模型特征都存在
+                    full_feature_set = set(models["loi_features"] + models["ts_features"])
+                    
+                    # 填充缺失的特征值为0.0
+                    for feature in full_feature_set:
+                        if feature not in st.session_state.input_values:
+                            st.session_state.input_values[feature] = 0.0
+                    
+                    # LOI预测
+                    loi_input = np.array([[st.session_state.input_values[f] for f in models["loi_features"]]])
+                    # 检查特征数量是否匹配
+                    if loi_input.shape[1] != len(models["loi_features"]):
+                        st.error(f"LOI输入特征数量不匹配: 输入{loi_input.shape[1]}个, 需要{len(models['loi_features'])}个")
+                        st.stop()
+                    
+                    loi_scaled = models["loi_scaler"].transform(loi_input)
+                    loi_pred = models["loi_model"].predict(loi_scaled)[0]
+        
+                    # TS预测
+                    ts_input = np.array([[st.session_state.input_values[f] for f in models["ts_features"]]])
+                    # 检查特征数量是否匹配
+                    if ts_input.shape[1] != len(models["ts_features"]):
+                        st.error(f"TS输入特征数量不匹配: 输入{ts_input.shape[1]}个, 需要{len(models['ts_features'])}个")
+                        st.stop()
+                    
+                    ts_scaled = models["ts_scaler"].transform(ts_input)
+                    ts_pred = models["ts_model"].predict(ts_scaled)[0]
+        
+                # 显示预测结果
+                st.success("预测完成！")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric(label="LOI预测值", value=f"{loi_pred:.2f}%", delta="极限氧指数")
+                with col2:
+                    st.metric(label="TS预测值", value=f"{ts_pred:.2f} MPa", delta="拉伸强度")
+        
     elif page == "配方建议" and sub_page == "添加剂推荐":
         st.subheader("🧪 PVC添加剂智能推荐")
         predictor = Predictor("scaler_fold_1.pkl", "svc_fold_1.pkl")
