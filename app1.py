@@ -454,6 +454,10 @@ if st.session_state.logged_in:
         render_global_header()
         st.subheader("🔮 性能预测：基于配方预测LOI和TS")
     
+        # 初始化 input_values
+        if 'input_values' not in st.session_state:
+            st.session_state.input_values = {}  # 使用会话状态保存输入值
+        
         # 基体材料数据
         matrix_materials = {
             "PP": {"name": "Polypropylene", "full_name": "Polypropylene (PP)", "range": (53.5, 99.5)},
@@ -506,22 +510,24 @@ if st.session_state.logged_in:
             "Lubricants": {
                 "M-2200B": {"name": "Lubricant M-2200B (Ester-based)", "range": (0.5, 3)},
             },
-            "Functional Additives": {
+            "Functional Additives": {  # 替换Others为功能助剂
                 "Custom Additive": {"name": "Custom Additive", "range": (0, 5)},
             },
         }
     
         fraction_type = st.sidebar.selectbox("选择输入的单位", ["质量", "质量分数", "体积分数"])
     
-        # 配方成分部分
+        # 配方成分部分（基体和阻燃剂）
         st.subheader("请选择配方成分")
-        col_matrix = st.columns([4, 3], gap="medium")
+        col_matrix = st.columns([4, 3], gap="medium")  # 调整列宽比例
         with col_matrix[0]:
             st.markdown('<div id="base-material-select">', unsafe_allow_html=True)
             selected_matrix = st.selectbox("选择基体材料", [matrix_materials[key]["full_name"] for key in matrix_materials], index=0)
+            # 获取选中基体的缩写
             matrix_key = [key for key in matrix_materials if matrix_materials[key]["full_name"] == selected_matrix][0]
             matrix_name = matrix_materials[matrix_key]["name"]
             matrix_range = matrix_materials[matrix_key]["range"]
+            # 显示推荐范围，不带单位
             st.markdown(f"**推荐范围**: {matrix_range[0]} - {matrix_range[1]}")
     
         with col_matrix[1]:
@@ -530,27 +536,32 @@ if st.session_state.logged_in:
                 f"{matrix_name} 含量 ({unit_matrix})", min_value=0.0, max_value=100.0, value=50.0, step=0.1
             )
     
-        # 阻燃剂显示
+        # ========== 阻燃剂显示 ==========  
         st.subheader("请选择阻燃剂")
         st.markdown('<div id="base-material-select">', unsafe_allow_html=True)
+        # 显示完整名称的下拉框
         selected_flame_retardants = st.multiselect(
             "选择阻燃剂（必选锡酸锌和羟基锡酸锌）", 
             [flame_retardants[key]["name"] for key in flame_retardants],
             default=[flame_retardants[list(flame_retardants.keys())[0]]["name"]]
         )
         
+        # 根据选择的完整名称，设置输入框
         for flame_name in selected_flame_retardants:
+            # 获取对应的阻燃剂缩写
             for key, value in flame_retardants.items():
                 if value["name"] == flame_name:
                     flame_info = value
                     with st.expander(f"{flame_info['name']} 推荐范围"):
-                        st.write(f"推荐范围：{flame_info['range'][0]} - {flame_info['range'][1]}")
+                        st.write(f"推荐范围：{flame_info['range'][0]} - {flame_info['range'][1]}")  # 不带单位
                         unit_add = "g" if fraction_type == "质量" else ("%" if fraction_type == "质量分数" else "vol%")
                         
+                        # 设置默认值，确保它不小于最小值
                         min_val = float(flame_info['range'][0])
                         max_val = float(flame_info['range'][1])
                         default_value = max(min_val, 0.0)
     
+                        # 使用 number_input 输入框
                         st.session_state.input_values[key] = st.number_input(
                             f"{flame_info['name']} 含量 ({unit_add})", 
                             min_value=min_val, 
@@ -560,23 +571,23 @@ if st.session_state.logged_in:
                             key=f"fr_{key}"
                         )
     
-        # 助剂显示
+        # ========== 助剂显示 ==========  
         st.subheader("选择助剂")
         st.markdown('<div id="base-material-select">', unsafe_allow_html=True)
         selected_additives = st.multiselect(
             "选择助剂（可多选）", list(additives.keys()), default=[list(additives.keys())[0]]
         )
         
-        total = 0.0  # 初始化总和
         for category in selected_additives:
             for ad, additive_info in additives[category].items():
                 with st.expander(f"{additive_info['name']} 推荐范围"):
-                    st.write(f"推荐范围：{additive_info['range'][0]} - {additive_info['range'][1]}")
+                    st.write(f"推荐范围：{additive_info['range'][0]} - {additive_info['range'][1]}")  # 不带单位
                     unit_additive = "g" if fraction_type == "质量" else ("%" if fraction_type == "质量分数" else "vol%")
                     min_additive = float(additive_info["range"][0])
                     max_additive = float(additive_info["range"][1])
                     default_additive = max(min_additive, 0.0)
     
+                    # 设置助剂输入框
                     st.session_state.input_values[ad] = st.number_input(
                         f"{additive_info['name']} 含量 ({unit_additive})", 
                         min_value=min_additive, 
@@ -585,11 +596,11 @@ if st.session_state.logged_in:
                         step=0.1,
                         key=f"additive_{ad}"
                     )
-            total = sum(st.session_state.input_values.values())  # 计算总和
-    
-        is_only_pp = all(v == 0 for k, v in st.session_state.input_values.items() if k != "PP")
-    
-        # 输入验证
+            
+            # 校验和预测
+            total = sum(st.session_state.input_values.values())  # 总和计算
+            is_only_pp = all(v == 0 for k, v in st.session_state.input_values.items() if k != "PP")  # 仅PP配方检查
+        
         with st.expander("✅ 输入验证"):
             if fraction_type in ["体积分数", "质量分数"]:
                 if abs(total - 100.0) > 1e-6:
@@ -600,51 +611,59 @@ if st.session_state.logged_in:
                 st.success("成分总和验证通过")
                 if is_only_pp:
                     st.info("检测到纯PP配方")
-    
-            # 验证阻燃剂
+        
+            # 验证配方是否包含锡酸锌或羟基锡酸锌
             selected_flame_keys = [key for key in flame_retardants if flame_retardants[key]["name"] in selected_flame_retardants]
             if not any("Zinc Stannate" in flame_retardants[key]["name"] or "Hydroxy Zinc Stannate" in flame_retardants[key]["name"] for key in selected_flame_keys):
                 st.error("❗ 配方必须包含锡酸锌（Zinc Stannate）或羟基锡酸锌（Hydroxy Zinc Stannate）。")
             else:
                 st.success("配方验证通过，包含锡酸锌或羟基锡酸锌。")
             
-            # 预测按钮
+            # 验证并点击“开始预测”按钮
             if st.button("🚀 开始预测", type="primary"):
+                # 检查输入总和是否为100%，如果不是则停止
                 if fraction_type in ["体积分数", "质量分数"] and abs(total - 100.0) > 1e-6:
                     st.error(f"预测中止：{fraction_type}的总和必须为100%")
                     st.stop()
-    
+        
+                # 如果是纯PP配方，直接给出模拟值
                 if is_only_pp:
                     loi_pred = 17.5
                     ts_pred = 35.0
                 else:
-                    # 体积分数转换
+                    # 体积分数转换为质量分数
                     if fraction_type == "体积分数":
                         vol_values = np.array(list(st.session_state.input_values.values()))
                         total_mass = vol_values.sum()
-                        if total_mass > 0:
-                            mass_values = vol_values * total_mass
-                            st.session_state.input_values = {k: (v / total_mass * 100) for k, v in zip(st.session_state.input_values.keys(), mass_values)}
-    
-                    # 填充LOI特征
-                    loi_input_features = []
-                    for feature in models["loi_features"]:
-                        loi_input_features.append(st.session_state.input_values.get(feature, 0.0))
-                    
-                    loi_input = np.array([loi_input_features])
-                    loi_scaled = models["loi_scaler"].transform(loi_input)
-                    loi_pred = models["loi_model"].predict(loi_scaled)[0]
-                    
-                    # 填充TS特征
-                    ts_input_features = []
-                    for feature in models["ts_features"]:
-                        ts_input_features.append(st.session_state.input_values.get(feature, 0.0))
-    
-                    ts_input = np.array([ts_input_features])
-                    ts_scaled = models["ts_scaler"].transform(ts_input)
-                    ts_pred = models["ts_model"].predict(ts_scaled)[0]
-    
-                # 显示结果
+                        mass_values = vol_values * total_mass  # 按比例转换
+                        st.session_state.input_values = {k: (v / total_mass * 100) for k, v in zip(st.session_state.input_values.keys(), mass_values)}
+        
+                    # 填充缺失的特征值
+# 填充缺失的特征值
+                        loi_input_features = []
+                        for feature in models["loi_features"]:
+                            if feature in st.session_state.input_values:
+                                loi_input_features.append(st.session_state.input_values[feature])
+                            else:
+                                loi_input_features.append(0.0)  # 填充默认值0
+                        
+                        loi_input = np.array([loi_input_features])
+                        loi_scaled = models["loi_scaler"].transform(loi_input)
+                        loi_pred = models["loi_model"].predict(loi_scaled)[0]
+                        
+                        # 处理TS预测
+                        ts_input_features = []
+                        for feature in models["ts_features"]:
+                            if feature in st.session_state.input_values:
+                                ts_input_features.append(st.session_state.input_values[feature])
+                            else:
+                                ts_input_features.append(0.0)  # 填充默认值0
+
+                ts_input = np.array([ts_input_features])
+                ts_scaled = models["ts_scaler"].transform(ts_input)
+                ts_pred = models["ts_model"].predict(ts_scaled)[0]
+        
+                # 显示预测结果
                 col1, col2 = st.columns(2)
                 with col1:
                     st.metric(label="LOI预测值", value=f"{loi_pred:.2f}%")
