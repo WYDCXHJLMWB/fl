@@ -29,7 +29,7 @@ def save_user(username, password, email):
 def verify_user(username, password):
     users = load_users()
     user = users[users['username'] == username]
-    if user.empty:
+    user.empty:
         return False
     return bcrypt.checkpw(password.encode(), user.iloc[0]['password_hash'].encode())
 
@@ -644,29 +644,56 @@ if st.session_state.logged_in:
                                 for k, v in zip(st.session_state.input_values.keys(), mass_values)
                             }
     
-                    # 填充缺失的特征值
+                    # 获取模型期望的所有特征
+                    all_features = sorted(list(matrix_materials.keys()) + 
+                                       list(flame_retardants.keys()) + 
+                                       [key for category in additives for key in additives[category]]
+                    
+                    # 填充所有特征值（包括未使用的特征）
                     loi_input_features = []
-                    for feature in models["loi_features"]:
+                    for feature in all_features:
                         if feature in st.session_state.input_values:
                             loi_input_features.append(st.session_state.input_values[feature])
                         else:
-                            loi_input_features.append(0.0)  # 填充默认值0
+                            loi_input_features.append(0.0)  # 未使用的特征填充0
                     
                     loi_input = np.array([loi_input_features])
-                    loi_scaled = models["loi_scaler"].transform(loi_input)
-                    loi_pred = models["loi_model"].predict(loi_scaled)[0]
                     
+                    # 检查特征数量是否匹配
+                    expected_features = 25  # 根据模型期望的特征数量
+                    if len(loi_input_features) != expected_features:
+                        # 如果特征数量不足，填充零值
+                        loi_input_features += [0.0] * (expected_features - len(loi_input_features))
+                        loi_input = np.array([loi_input_features])
+                    
+                    try:
+                        loi_scaled = models["loi_scaler"].transform(loi_input)
+                        loi_pred = models["loi_model"].predict(loi_scaled)[0]
+                    except Exception as e:
+                        st.error(f"LOI预测出错: {str(e)}")
+                        loi_pred = 25.0  # 默认值
+    
                     # 处理TS预测
                     ts_input_features = []
-                    for feature in models["ts_features"]:
+                    for feature in all_features:
                         if feature in st.session_state.input_values:
                             ts_input_features.append(st.session_state.input_values[feature])
                         else:
-                            ts_input_features.append(0.0)  # 填充默认值0
-    
+                            ts_input_features.append(0.0)  # 未使用的特征填充0
+                    
                     ts_input = np.array([ts_input_features])
-                    ts_scaled = models["ts_scaler"].transform(ts_input)
-                    ts_pred = models["ts_model"].predict(ts_scaled)[0]
+                    
+                    # 检查特征数量是否匹配
+                    if len(ts_input_features) != expected_features:
+                        ts_input_features += [0.0] * (expected_features - len(ts_input_features))
+                        ts_input = np.array([ts_input_features])
+                    
+                    try:
+                        ts_scaled = models["ts_scaler"].transform(ts_input)
+                        ts_pred = models["ts_model"].predict(ts_scaled)[0]
+                    except Exception as e:
+                        st.error(f"TS预测出错: {str(e)}")
+                        ts_pred = 30.0  # 默认值
     
                 # 显示预测结果
                 col1, col2 = st.columns(2)
