@@ -555,65 +555,53 @@ if st.session_state.logged_in:
                 loi_pred = 17.5
                 ts_pred = 35.0
             else:
-                # 体积分数转质量分数处理
+                # 体积分数转质量分数处理 - 修复转换逻辑
                 if fraction_type == "体积分数":
-                    vol_values = np.array(list(st.session_state.input_values.values()))
-                    total_mass = vol_values.sum()
-                    if total_mass > 0:
-                        mass_values = vol_values * total_mass
-                        st.session_state.input_values = {
-                            k: (v / total_mass * 100) 
-                            for k, v in zip(st.session_state.input_values.keys(), mass_values)
-                        }
-
-                # 特征处理
-                all_features = sorted(
-                    list(matrix_materials.keys()) + 
-                    list(flame_retardants.keys()) + 
-                    [key for category in additives for key in additives[category]]
-                )
+                    # 假设所有材料密度相同（简化处理）
+                    total_vol = sum(st.session_state.input_values.values())
+                    st.session_state.input_values = {
+                        k: (v / total_vol * 100) 
+                        for k, v in st.session_state.input_values.items()
+                    }
+        
+                # 特征处理 - 确保特征顺序和数量正确
+                loi_features = ["PP", "AHP", "CFA", "APP", "Pentaerythritol", 
+                                "DOPO", "ZS", "ZHS", "ZnB"]
+                ts_features = ["PP", "AHP", "CFA", "APP", "Pentaerythritol", 
+                               "DOPO", "ZS", "ZHS", "ZnB"]
                 
-                # 获取模型期望特征数量
-                expected_loi_features = models["loi_scaler"].n_features_in_ if models else 25
-                expected_ts_features = models["ts_scaler"].n_features_in_ if models else 25
-
-                # LOI预测特征处理
-                loi_input_features = []
-                for feature in all_features:
-                    loi_input_features.append(st.session_state.input_values.get(feature, 0.0))
+                # 构建特征向量
+                loi_input_features = [
+                    st.session_state.input_values.get(feature, 0.0) 
+                    for feature in loi_features
+                ]
+                ts_input_features = [
+                    st.session_state.input_values.get(feature, 0.0) 
+                    for feature in ts_features
+                ]
                 
-                # 调整特征维度
-                if len(loi_input_features) < expected_loi_features:
-                    loi_input_features += [0.0] * (expected_loi_features - len(loi_input_features))
-                elif len(loi_input_features) > expected_loi_features:
-                    loi_input_features = loi_input_features[:expected_loi_features]
-                loi_input = np.array([loi_input_features])
-                
+                # LOI预测
                 try:
+                    loi_input = np.array([loi_input_features])
                     loi_scaled = models["loi_scaler"].transform(loi_input)
                     loi_pred = models["loi_model"].predict(loi_scaled)[0]
+                    # 约束LOI在合理范围内 (17-50)
+                    loi_pred = max(17.0, min(loi_pred, 50.0))
                 except Exception as e:
                     st.error(f"LOI预测出错: {str(e)}")
-                    loi_pred = 25.0
-
-                # TS预测特征处理
-                ts_input_features = []
-                for feature in all_features:
-                    ts_input_features.append(st.session_state.input_values.get(feature, 0.0))
-                
-                if len(ts_input_features) < expected_ts_features:
-                    ts_input_features += [0.0] * (expected_ts_features - len(ts_input_features))
-                elif len(ts_input_features) > expected_ts_features:
-                    ts_input_features = ts_input_features[:expected_ts_features]
-                ts_input = np.array([ts_input_features])
-                
+                    loi_pred = 25.0  # 默认值
+        
+                # TS预测
                 try:
+                    ts_input = np.array([ts_input_features])
                     ts_scaled = models["ts_scaler"].transform(ts_input)
                     ts_pred = models["ts_model"].predict(ts_scaled)[0]
+                    # 约束TS在合理范围内 (0-100)
+                    ts_pred = max(0.0, min(ts_pred, 100.0))
                 except Exception as e:
                     st.error(f"TS预测出错: {str(e)}")
-                    ts_pred = 30.0
-
+                    ts_pred = 30.0  # 默认值
+        
             # 显示结果
             col1, col2 = st.columns(2)
             with col1:
