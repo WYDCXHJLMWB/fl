@@ -564,21 +564,37 @@ if st.session_state.logged_in:
                         for k, v in st.session_state.input_values.items()
                     }
         
-                # 特征处理 - 确保特征顺序和数量正确
-                loi_features = ["PP", "AHP", "CFA", "APP", "Pentaerythritol", 
-                                "DOPO", "ZS", "ZHS", "ZnB"]
-                ts_features = ["PP", "AHP", "CFA", "APP", "Pentaerythritol", 
-                               "DOPO", "ZS", "ZHS", "ZnB"]
+                # 获取所有可能的材料特征
+                all_features = sorted(
+                    list(matrix_materials.keys()) + 
+                    list(flame_retardants.keys()) + 
+                    [key for category in additives for key in additives[category]]
+                )
                 
-                # 构建特征向量
-                loi_input_features = [
-                    st.session_state.input_values.get(feature, 0.0) 
-                    for feature in loi_features
-                ]
-                ts_input_features = [
-                    st.session_state.input_values.get(feature, 0.0) 
-                    for feature in ts_features
-                ]
+                # 确保特征数量与模型期望匹配
+                # LOI模型期望25个特征，TS模型期望26个特征
+                loi_expected_features = 25
+                ts_expected_features = 26
+                
+                # 创建特征向量
+                loi_input_features = []
+                ts_input_features = []
+                
+                for feature in all_features:
+                    value = st.session_state.input_values.get(feature, 0.0)
+                    loi_input_features.append(value)
+                    ts_input_features.append(value)
+                
+                # 填充特征向量到模型期望的长度
+                if len(loi_input_features) < loi_expected_features:
+                    loi_input_features += [0.0] * (loi_expected_features - len(loi_input_features))
+                elif len(loi_input_features) > loi_expected_features:
+                    loi_input_features = loi_input_features[:loi_expected_features]
+                
+                if len(ts_input_features) < ts_expected_features:
+                    ts_input_features += [0.0] * (ts_expected_features - len(ts_input_features))
+                elif len(ts_input_features) > ts_expected_features:
+                    ts_input_features = ts_input_features[:ts_expected_features]
                 
                 # LOI预测
                 try:
