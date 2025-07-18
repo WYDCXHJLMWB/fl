@@ -29,7 +29,7 @@ def save_user(username, password, email):
 def verify_user(username, password):
     users = load_users()
     user = users[users['username'] == username]
-    user.empty:
+    if user.empty:
         return False
     return bcrypt.checkpw(password.encode(), user.iloc[0]['password_hash'].encode())
 
