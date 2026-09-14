@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import bcrypt
 import os
@@ -133,50 +134,64 @@ def apply_global_styles():
     </style>
     """, unsafe_allow_html=True)
 
-# --------------------- 渲染头部：大标题（130px） ---------------------
+
+# --------------------- 渲染头部：用 iframe，绝对生效 ---------------------
 def render_global_header():
-    html_content = """
-    <div style="
-        text-align: center;
-        padding: 20px 10px 30px 10px;
-    ">
-        <div style="
-            font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Segoe UI', sans-serif;
-            font-size: 130px;
-            font-weight: 900;
-            color: #1e3d59;
-            letter-spacing: 2px;
-            line-height: 1.05;
-            margin: 0 0 22px 0;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.12);
-            white-space: nowrap;
-        ">
-            阻燃聚合物复合材料智能设计平台
-        </div>
-        <div style="
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 46px;
-            font-weight: 700;
-            color: #4a6572;
-            letter-spacing: 3px;
-            line-height: 1.2;
-            margin: 0;
-            white-space: nowrap;
-        ">
-            Flame Retardant Composites AI Platform
-        </div>
-    </div>
-    """
-    try:
-        st.html(html_content)
-    except AttributeError:
-        st.markdown(html_content, unsafe_allow_html=True)
+    components.html(
+        """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+                body {
+                    margin: 0;
+                    padding: 0;
+                    background: transparent;
+                    overflow: hidden;
+                }
+                .title-cn {
+                    font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB',
+                                 'Heiti SC', 'WenQuanYi Micro Hei', 'Segoe UI', sans-serif;
+                    font-size: 96px;
+                    font-weight: 900;
+                    color: #1e3d59;
+                    text-align: center;
+                    line-height: 1.1;
+                    letter-spacing: 4px;
+                    margin: 10px 0 24px 0;
+                    padding: 0 20px;
+                }
+                .title-en {
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    font-size: 34px;
+                    font-weight: 700;
+                    color: #4a6572;
+                    text-align: center;
+                    line-height: 1.2;
+                    letter-spacing: 3px;
+                    margin: 0;
+                    padding: 0 20px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="title-cn">阻燃聚合物复合材料智能设计平台</div>
+            <div class="title-en">Flame Retardant Composites AI Platform</div>
+        </body>
+        </html>
+        """,
+        height=280,
+        scrolling=False,
+    )
+
 
 # --------------------- 首页内容 ---------------------
 def show_homepage():
     apply_global_styles()
     render_global_header()
-    
+
     st.markdown("""<div style="max-width:1400px; margin:0 auto; padding:1rem 2rem 2rem 2rem;">""", unsafe_allow_html=True)
     st.markdown("""
     <div style="font-size:1.4rem; font-weight:600; line-height:1.9; margin-bottom:2.5rem; text-align: center; color:#1e3d59;">
@@ -190,7 +205,7 @@ def show_homepage():
         🌟 核心功能
     </h2>
     """, unsafe_allow_html=True)
-    
+
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("""
@@ -226,7 +241,7 @@ def show_homepage():
         👨💻 开发团队
     </h2>
     """, unsafe_allow_html=True)
-    
+
     col_dev, col_sup = st.columns(2)
     with col_dev:
         st.markdown("""
@@ -247,7 +262,7 @@ def show_homepage():
 
     st.markdown("""<div style="margin-top: 3rem; background: #ffffff; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">""", unsafe_allow_html=True)
     st.markdown('<h2 style="font-size:3.2rem; font-weight:900; color:#1e3d59; text-align:center; margin-bottom:1.5rem;">🔐 用户认证</h2>', unsafe_allow_html=True)
-    
+
     tab_login, tab_register, tab_forgot = st.tabs(["登录", "注册", "忘记密码"])
 
     with tab_login:
@@ -299,8 +314,9 @@ def show_homepage():
                     st.success("密码已重置，请使用新密码登录")
                 else:
                     st.error("该邮箱未注册")
-    
+
     st.markdown("</div></div>", unsafe_allow_html=True)
+
 
 # --------------------- 预测相关类和函数 ---------------------
 class Predictor:
