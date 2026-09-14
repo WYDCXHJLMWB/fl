@@ -280,8 +280,11 @@ class Predictor:
         X_scaled = self.scaler.transform(feature_df)
         return self.model.predict(X_scaled)[0]
 
-# --------------------- PHRR 模型加载与特征工程 ---------------------
-# 直接读取 GitHub 仓库根目录下的实际文件名
+
+# =====================================================================
+#                    PHRR 模型 / 特征 加载与预测
+# =====================================================================
+# 匹配 GitHub 仓库根目录下的文件
 PHRR_MODEL_PATH = "catboost_regressor_145302.pkl"
 PHRR_FEATURES_PKL = "phrr_train_features.pkl"
 
@@ -296,42 +299,82 @@ ADP_FIXED = 0.3
 
 
 def load_phrr_features():
-    """加载PHRR特征名列表（从 pkl 文件读取）"""
+    """加载PHRR特征名列表（兼容 .pkl / .npy / list / ndarray / Index / dict / str）"""
     features = []
-    if os.path.exists(PHRR_FEATURES_PKL):
-        try:
-            obj = joblib.load(PHRR_FEATURES_PKL)
-            if isinstance(obj, list):
-                features = [str(f) for f in obj]
-            elif isinstance(obj, np.ndarray):
-                features = [str(f) for f in obj.tolist()]
-            elif isinstance(obj, pd.Index):
-                features = [str(f) for f in obj.tolist()]
-            elif isinstance(obj, dict):
-                for key in ['features', 'selected_features', 'feature_names', 'columns']:
-                    if key in obj:
-                        features = [str(f) for f in obj[key]]
-                        break
-            else:
-                st.warning(f"⚠️ 无法识别的特征文件格式：{type(obj)}")
-        except Exception as e:
-            st.warning(f"PHRR 特征文件解析失败: {e}")
-    else:
+    if not os.path.exists(PHRR_FEATURES_PKL):
         st.warning(f"⚠️ 未找到特征文件：{PHRR_FEATURES_PKL}")
+        return features
+
+    try:
+        obj = joblib.load(PHRR_FEATURES_PKL)
+
+        # 情况1：直接是 list
+        if isinstance(obj, list):
+            features = [str(f) for f in obj]
+
+        # 情况2：numpy 数组
+        elif isinstance(obj, np.ndarray):
+            features = [str(f) for f in obj.ravel().tolist()]
+
+        # 情况3：pandas Index / Series
+        elif isinstance(obj, (pd.Index, pd.Series)):
+            features = [str(f) for f in obj.tolist()]
+
+        # 情况4：字典 —— 尝试常见键名
+        elif isinstance(obj, dict):
+            found = False
+            for key in ['features', 'selected_features', 'feature_names',
+                        'columns', 'cols', 'feature_list']:
+                if key in obj:
+                    val = obj[key]
+                    if isinstance(val, (list, np.ndarray, pd.Index, pd.Series)):
+                        features = [str(f) for f in list(val)]
+                        found = True
+                        break
+            if not found:
+                st.warning(f"⚠️ 特征字典的键名未识别，可用键：{list(obj.keys())}")
+                # 兜底：取第一个看起来是 list 的值
+                for v in obj.values():
+                    if isinstance(v, (list, np.ndarray, pd.Index, pd.Series)):
+                        features = [str(f) for f in list(v)]
+                        break
+
+        # 情况5：DataFrame
+        elif isinstance(obj, pd.DataFrame):
+            if obj.shape[1] >= 1:
+                features = [str(f) for f in obj.iloc[:, 0].tolist()]
+
+        # 情况6：字符串
+        elif isinstance(obj, str):
+            features = [obj]
+
+        else:
+            st.warning(f"⚠️ 无法识别的特征文件类型：{type(obj)}")
+
+    except Exception as e:
+        st.warning(f"PHRR 特征文件解析失败: {e}")
+
     return features
 
 
 @st.cache_resource
 def load_phrr_model():
-    """加载PHRR模型"""
-    try:
-        if os.path.exists(PHRR_MODEL_PATH):
-            model = joblib.load(PHRR_MODEL_PATH)
-            return model
-        else:
-            st.error(f"❌ 模型文件不存在：{PHRR_MODEL_PATH}")
-    except Exception as e:
-        st.error(f"PHRR 模型加载失败: {e}")
+    """加载 PHRR 模型（自动兼容不同文件存放位置）"""
+    # 候选路径：根目录 + models/ 子目录
+    candidate_paths = [
+        PHRR_MODEL_PATH,
+        os.path.join("models", PHRR_MODEL_PATH),
+        os.path.join("models", "phrr_model.pkl"),
+    ]
+    for path in candidate_paths:
+        if os.path.exists(path):
+            try:
+                model = joblib.load(path)
+                return model
+            except Exception as e:
+                st.error(f"PHRR 模型 `{path}` 加载失败: {e}")
+                return None
+    st.error(f"❌ 未找到 PHRR 模型文件。已尝试路径：{candidate_paths}")
     return None
 
 
@@ -372,11 +415,17 @@ def feature_engineering_phrr(p, phrr_features):
     df['W_ratio'] = df['W'] / (df['total_ad'] + 1e-6) if all(c in df.columns for c in ['W','total_ad']) else 0
     df['ADP_ratio'] = df['ADP'] / (df['total_ad'] + 1e-6) if all(c in df.columns for c in ['ADP','total_ad']) else 0
 
+    # 补齐缺失特征
     for feat in phrr_features:
         if feat not in df.columns:
             df[feat] = 0
 
-    df = df[phrr_features]
+    # 按特征顺序排列；对于不存在的特征，补 0
+    ordered_cols = [f for f in phrr_features]
+    for c in ordered_cols:
+        if c not in df.columns:
+            df[c] = 0
+    df = df[ordered_cols]
     return df
 
 
@@ -387,22 +436,27 @@ def predict_phrr(p, phrr_model, phrr_features):
         x = df_eng.values.astype(np.float64)
         if x.shape[1] == 0:
             return 9999.0
+
+        # 尝试直接预测
         try:
             pred = phrr_model.predict(x)[0]
             return float(pred)
-        except Exception:
-            if hasattr(phrr_model, 'n_features_in_') and phrr_model.n_features_in_ > 0:
-                n_expected = phrr_model.n_features_in_
-                if x.shape[1] != n_expected:
-                    if x.shape[1] > n_expected:
-                        x = x[:, :n_expected]
-                    else:
-                        padding = np.zeros((x.shape[0], n_expected - x.shape[1]))
-                        x = np.hstack([x, padding])
-                    pred = phrr_model.predict(x)[0]
-                    return float(pred)
-            raise
-    except Exception:
+        except Exception as e1:
+            # 特征数不匹配时，尝试自动裁剪/补齐
+            n_expected = getattr(phrr_model, 'n_features_in_', None)
+            if n_expected:
+                if x.shape[1] > n_expected:
+                    x = x[:, :n_expected]
+                elif x.shape[1] < n_expected:
+                    padding = np.zeros((x.shape[0], n_expected - x.shape[1]))
+                    x = np.hstack([x, padding])
+                pred = phrr_model.predict(x)[0]
+                return float(pred)
+            raise e1
+    except Exception as e:
+        if not hasattr(predict_phrr, '_err_printed'):
+            predict_phrr._err_printed = True
+            print(f"[predict_phrr] error: {e}")
         return 9999.0
 
 
@@ -411,7 +465,7 @@ LOI_FEATURES = ["PP", "AHP", "CFA", "APP", "Pentaerythritol", "DOPO", "ZS", "ZHS
 
 
 def predict_loi(p, loi_model, loi_scaler):
-    """根据配方p预测LOI，p中不在LOI_FEATURES的变量忽略"""
+    """根据配方p预测LOI"""
     try:
         vec = [float(p.get(f, 0.0)) for f in LOI_FEATURES]
         x = np.array([vec], dtype=np.float64)
@@ -419,16 +473,15 @@ def predict_loi(p, loi_model, loi_scaler):
         pred = loi_model.predict(x_scaled)[0]
         pred = max(17.0, min(pred, 50.0))
         return float(pred)
-    except Exception:
+    except Exception as e:
+        if not hasattr(predict_loi, '_err_printed'):
+            predict_loi._err_printed = True
+            print(f"[predict_loi] error: {e}")
         return 9999.0
 
 
 # --------------------- 逆向设计主界面 ---------------------
 def render_inverse_design_page(models):
-    """
-    逆向设计页面：基于贝叶斯优化，以 PHRR 与 LOI 为目标进行多目标配方优化。
-    最终只输出 2-3 个最优配方。
-    """
     st.subheader("🎯 多目标逆向设计（PHRR & LOI）")
     st.markdown("""
     本模块使用 **贝叶斯优化（TPE）**，在给定变量范围内自动搜索满足
@@ -436,24 +489,41 @@ def render_inverse_design_page(models):
     最终输出 **2–3 个最优配方** 供实验验证参考。
     """)
 
-    # 加载 PHRR 模型和特征
+    # ---------- 文件存在性检查 ----------
+    with st.expander("🔍 文件与模型加载调试信息", expanded=False):
+        st.write("**当前工作目录**：", os.getcwd())
+        st.write("**当前目录下的文件**：", sorted(os.listdir(".")))
+        st.write(f"**PHRR 模型路径 `{PHRR_MODEL_PATH}` 存在**：", os.path.exists(PHRR_MODEL_PATH))
+        st.write(f"**PHRR 特征路径 `{PHRR_FEATURES_PKL}` 存在**：", os.path.exists(PHRR_FEATURES_PKL))
+
+    # ---------- 加载 PHRR 模型和特征 ----------
     phrr_model = load_phrr_model()
     phrr_features = load_phrr_features()
 
     if phrr_model is None:
-        st.error(f"❌ PHRR 模型加载失败。请确认模型文件 `{PHRR_MODEL_PATH}` 存在。")
+        st.error(f"❌ PHRR 模型加载失败。请确认 `{PHRR_MODEL_PATH}` 已在仓库根目录。")
         return
 
     if len(phrr_features) == 0:
-        st.warning("⚠️ 未解析到 PHRR 特征列表，将尝试从模型自动推断。")
+        st.warning("⚠️ 未解析到 PHRR 特征列表，尝试从模型自动推断。")
+        # 尝试从模型获取
         if hasattr(phrr_model, 'feature_names_'):
-            phrr_features = list(phrr_model.feature_names_)
+            phrr_features = [str(f) for f in phrr_model.feature_names_]
             st.success(f"从模型读取到 {len(phrr_features)} 个特征。")
         elif hasattr(phrr_model, 'n_features_in_'):
-            phrr_features = [f'feature_{i}' for i in range(phrr_model.n_features_in_)]
+            # 用常见衍生特征补齐
+            base = ['PP', 'PAPP', 'MPP', 'ZS', 'W', 'ADP', 'total_ad', 'additive_ratio',
+                    'PAPP_ratio', 'MPP_ratio', 'synergist_total', 'W_ratio_in_synergist',
+                    'PAPP_MPP_W_interaction', 'PAPP_square', 'MPP_square',
+                    'PAPP_MPP_ratio', 'PAPP_W_ratio', 'PAPP_sqrt', 'MPP_sqrt',
+                    'ZS_ratio', 'W_ratio', 'ADP_ratio']
+            n = phrr_model.n_features_in_
+            phrr_features = base[:n]
+            while len(phrr_features) < n:
+                phrr_features.append(f'feature_{len(phrr_features)}')
             st.info(f"使用占位特征名，共 {len(phrr_features)} 个。")
         else:
-            st.error("❌ 无法确定 PHRR 特征列表，请检查特征文件。")
+            st.error("❌ 无法确定 PHRR 特征列表。")
             return
 
     if models is None or models.get("loi_model") is None:
@@ -463,16 +533,15 @@ def render_inverse_design_page(models):
     loi_model = models["loi_model"]
     loi_scaler = models["loi_scaler"]
 
-    # 显示模型信息
+    # ---------- 显示模型信息 ----------
     col_info1, col_info2 = st.columns(2)
     with col_info1:
-        st.markdown(f"**PHRR 模型**: `{type(phrr_model).__name__}`  |  特征数: `{len(phrr_features)}`")
+        st.markdown(f"**PHRR 模型**: `{type(phrr_model).__name__}` | 特征数: `{len(phrr_features)}`")
     with col_info2:
-        st.markdown(f"**LOI 模型**: `{type(loi_model).__name__}`  |  特征数: `{len(LOI_FEATURES)}`")
+        st.markdown(f"**LOI 模型**: `{type(loi_model).__name__}` | 特征数: `{len(LOI_FEATURES)}`")
 
     # ---------- 参数输入 ----------
     st.markdown("### ⚙️ 优化参数设置")
-
     col_t1, col_t2 = st.columns(2)
     with col_t1:
         target_phrr = st.number_input(
@@ -501,12 +570,10 @@ def render_inverse_design_page(models):
         )
 
     # ---------- 变量范围 ----------
-    st.markdown("### 📐 变量范围（仅对以下变量进行搜索，其余变量固定）")
-    st.info("提示：本模块固定 ADP = 0.3，AHP/CFA/APP/DOPO/ZHS/ZnB 等 LOI 相关变量暂固定为 0，"
-            "如需扩展可自行修改 `feature_engineering_phrr` 与 `predict_loi`。")
+    st.markdown("### 📐 变量范围")
+    st.info("本模块固定 ADP = 0.3，AHP/CFA/APP/DOPO/ZHS/ZnB 等 LOI 相关变量暂固定为 0。")
 
     use_default_ranges = st.checkbox("使用默认变量范围", value=True)
-
     if use_default_ranges:
         ranges = PHRR_VARIABLE_RANGES
     else:
@@ -533,7 +600,6 @@ def render_inverse_design_page(models):
             w_max = st.number_input("W 最大", value=9.0, step=0.5)
             ranges['W'] = (w_min, w_max)
 
-    # 显示当前范围
     with st.expander("📋 当前变量范围", expanded=False):
         range_df = pd.DataFrame([
             {"变量": k, "最小值": v[0], "最大值": v[1]} for k, v in ranges.items()
@@ -543,6 +609,14 @@ def render_inverse_design_page(models):
 
     # ---------- 开始优化 ----------
     if st.button("🚀 开始逆向设计优化", type="primary", use_container_width=True):
+        # 先做一次测试预测，及早暴露问题
+        test_p = {'PP': 80.0, 'PAPP': 21.0, 'MPP': 11.0, 'ZS': 1.0, 'W': 5.0, 'ADP': ADP_FIXED}
+        test_phrr = predict_phrr(test_p, phrr_model, phrr_features)
+        test_loi = predict_loi(test_p, loi_model, loi_scaler)
+        if test_phrr == 9999.0 or test_loi == 9999.0:
+            st.error("❌ 预测函数自检失败。请打开上方“文件与模型加载调试信息”确认模型文件、特征文件是否正确加载。")
+            return
+
         progress_bar = st.progress(0.0)
         status_text = st.empty()
 
@@ -564,13 +638,11 @@ def render_inverse_design_page(models):
 
             p = params.copy()
             p['ADP'] = ADP_FIXED
-
             if p['PAPP'] + p['MPP'] + p['ZS'] + p['W'] + ADP_FIXED > 100:
                 return 9999.0
 
             phrr_pred = predict_phrr(p, phrr_model, phrr_features)
             loi_pred = predict_loi(p, loi_model, loi_scaler)
-
             if phrr_pred == 9999.0 or loi_pred == 9999.0:
                 return 9999.0
 
@@ -595,7 +667,6 @@ def render_inverse_design_page(models):
                 'ZS': hp.uniform('ZS', ranges['ZS'][0], ranges['ZS'][1]),
                 'W': hp.uniform('W', ranges['W'][0], ranges['W'][1])
             }
-
             trials = Trials()
 
             def objective_hp(params):
@@ -646,12 +717,9 @@ def render_inverse_design_page(models):
 
         df_res = pd.DataFrame(history)
         df_res = df_res[df_res['loss'] < 9999].sort_values('loss').reset_index(drop=True)
-
         st.session_state.inverse_results = df_res
 
-        # ---------- 结果展示（固定输出 2-3 个） ----------
         st.markdown(f"### 🏆 优化结果（前 {int(top_k)} 个最优配方）")
-
         best = df_res.head(int(top_k)).reset_index(drop=True)
 
         for i in range(len(best)):
@@ -708,7 +776,6 @@ if st.session_state.logged_in:
         ["性能预测", "配方建议"],
         key="main_nav"
     )
-
     sub_page = None
     if page == "配方建议":
         sub_page = st.sidebar.selectbox(
@@ -734,15 +801,13 @@ if st.session_state.logged_in:
                 "loi_scaler": loi_data["scaler"],
                 "ts_model": ts_data["model"],
                 "ts_scaler": ts_data["scaler"],
-                "loi_features": ["PP", "AHP", "CFA", "APP", "Pentaerythritol", "DOPO", "ZS", "ZHS", "ZnB"],
-                "ts_features": ["PP", "AHP", "CFA", "APP", "Pentaerythritol", "DOPO", "ZS", "ZHS", "ZnB"]
             }
         except Exception as e:
             st.error(f"模型加载失败: {str(e)}")
             return None
-    
+
     models = load_models()
-        
+
     def get_unit(fraction_type):
         if fraction_type == "质量":
             return "g"
@@ -750,18 +815,13 @@ if st.session_state.logged_in:
             return "wt%"
         elif fraction_type == "体积分数":
             return "vol%"
-    
-    def ensure_pp_first(features):
-        if "PP" in features:
-            features.remove("PP")
-        return ["PP"] + sorted(features)
 
     apply_global_styles()
     render_global_header()
-      
+
     if page == "性能预测":
         st.subheader("🔮 性能预测：基于配方预测LOI和TS")
-    
+
         matrix_materials = {
             "PP": {"name": "Polypropylene", "full_name": "Polypropylene (PP)", "range": (53.5, 99.5)},
             "PA": {"name": "Polyamide", "full_name": "Polyamide (PA)", "range": (0, 100)},
@@ -770,7 +830,7 @@ if st.session_state.logged_in:
             "PBT": {"name": "Polybutylene Terephthalate", "full_name": "Polybutylene Terephthalate (PBT)", "range": (0, 100)},
             "PVC": {"name": "Polyvinyl Chloride", "full_name": "Polyvinyl Chloride (PVC)", "range": (0, 100)},
         }
-    
+
         flame_retardants = {
             "AHP": {"name": "Aluminum Hyphosphite", "range": (0, 25)},
             "CFA": {"name": "Carbon Forming agent", "range": (0, 10)},
@@ -791,7 +851,7 @@ if st.session_state.logged_in:
             "PAPP": {"name": "Piperazine Pyrophosphate", "range": (0, 24.5)},
             "其他": {"name": "Other", "range": (0, 100)},
         }
-    
+
         additives = {
             "processing additives": {
                 "Anti-drip-agent": {"name": "Polytetrafluoroethylene Anti-dripping Agent", "range": (0, 0.3)},
@@ -815,13 +875,12 @@ if st.session_state.logged_in:
                 "Custom Additive": {"name": "Custom Additive", "range": (0, 5)},
             },
         }
-    
+
         fraction_type = st.sidebar.selectbox("选择输入的单位", ["质量", "质量分数", "体积分数"])
-    
+
         st.subheader("请选择配方成分")
         col_matrix = st.columns([4, 3], gap="medium")
         with col_matrix[0]:
-            st.markdown('<div id="base-material-select">', unsafe_allow_html=True)
             selected_matrix = st.selectbox("选择基体材料", [matrix_materials[key]["full_name"] for key in matrix_materials], index=0)
             matrix_key = [key for key in matrix_materials if matrix_materials[key]["full_name"] == selected_matrix][0]
             matrix_name = matrix_materials[matrix_key]["name"]
@@ -832,15 +891,13 @@ if st.session_state.logged_in:
             st.session_state.input_values[matrix_key] = st.number_input(
                 f"{matrix_name} 含量 ({unit_matrix})", min_value=0.0, max_value=100.0, value=50.0, step=0.1
             )
-    
+
         st.subheader("请选择阻燃剂")
-        st.markdown('<div id="base-material-select">', unsafe_allow_html=True)
         selected_flame_retardants = st.multiselect(
-            "选择阻燃剂（必选锡酸锌和羟基锡酸锌）", 
+            "选择阻燃剂（必选锡酸锌和羟基锡酸锌）",
             [flame_retardants[key]["name"] for key in flame_retardants],
             default=[flame_retardants[list(flame_retardants.keys())[0]]["name"]]
         )
-        
         for flame_name in selected_flame_retardants:
             for key, value in flame_retardants.items():
                 if value["name"] == flame_name:
@@ -852,16 +909,14 @@ if st.session_state.logged_in:
                         max_val = float(flame_info['range'][1])
                         default_value = max(min_val, 0.0)
                         st.session_state.input_values[key] = st.number_input(
-                            f"{flame_info['name']} 含量 ({unit_add})", 
+                            f"{flame_info['name']} 含量 ({unit_add})",
                             min_value=min_val, max_value=max_val, value=default_value, step=0.1, key=f"fr_{key}"
                         )
-    
+
         st.subheader("选择助剂")
-        st.markdown('<div id="base-material-select">', unsafe_allow_html=True)
         selected_additives = st.multiselect(
             "选择助剂（可多选）", list(additives.keys()), default=[list(additives.keys())[0]]
         )
-        
         for category in selected_additives:
             for ad, additive_info in additives[category].items():
                 with st.expander(f"{additive_info['name']} 推荐范围"):
@@ -871,7 +926,7 @@ if st.session_state.logged_in:
                     max_additive = float(additive_info["range"][1])
                     default_additive = max(min_additive, 0.0)
                     st.session_state.input_values[ad] = st.number_input(
-                        f"{additive_info['name']} 含量 ({unit_additive})", 
+                        f"{additive_info['name']} 含量 ({unit_additive})",
                         min_value=min_additive, max_value=max_additive, value=default_additive, step=0.1, key=f"additive_{ad}"
                     )
 
@@ -888,10 +943,9 @@ if st.session_state.logged_in:
                 st.success("成分总和验证通过")
                 if is_only_pp:
                     st.info("检测到纯PP配方")
-            
             selected_flame_keys = [key for key in flame_retardants if flame_retardants[key]["name"] in selected_flame_retardants]
-            has_zinc_stannate = any("Zinc Stannate" in flame_retardants[key]["name"] or 
-                                   "Hydroxy Zinc Stannate" in flame_retardants[key]["name"] 
+            has_zinc_stannate = any("Zinc Stannate" in flame_retardants[key]["name"] or
+                                   "Hydroxy Zinc Stannate" in flame_retardants[key]["name"]
                                    for key in selected_flame_keys)
             if not has_zinc_stannate:
                 st.error("❗ 配方必须包含锡酸锌（Zinc Stannate）或羟基锡酸锌（Hydroxy Zinc Stannate）")
@@ -902,7 +956,6 @@ if st.session_state.logged_in:
             if fraction_type in ["体积分数", "质量分数"] and abs(total - 100.0) > 1e-6:
                 st.error(f"预测中止：{fraction_type}的总和必须为100%")
                 st.stop()
-            
             if not has_zinc_stannate:
                 st.error("预测中止：请添加锡酸锌或羟基锡酸锌")
                 st.stop()
@@ -914,37 +967,30 @@ if st.session_state.logged_in:
                 if fraction_type == "体积分数":
                     total_vol = sum(st.session_state.input_values.values())
                     st.session_state.input_values = {
-                        k: (v / total_vol * 100) 
+                        k: (v / total_vol * 100)
                         for k, v in st.session_state.input_values.items()
                     }
-        
                 all_features = sorted(
-                    list(matrix_materials.keys()) + 
-                    list(flame_retardants.keys()) + 
+                    list(matrix_materials.keys()) +
+                    list(flame_retardants.keys()) +
                     [key for category in additives for key in additives[category]]
                 )
-                
                 loi_expected_features = 25
                 ts_expected_features = 26
-                
                 loi_input_features = []
                 ts_input_features = []
-                
                 for feature in all_features:
                     value = st.session_state.input_values.get(feature, 0.0)
                     loi_input_features.append(value)
                     ts_input_features.append(value)
-                
                 if len(loi_input_features) < loi_expected_features:
                     loi_input_features += [0.0] * (loi_expected_features - len(loi_input_features))
                 elif len(loi_input_features) > loi_expected_features:
                     loi_input_features = loi_input_features[:loi_expected_features]
-                
                 if len(ts_input_features) < ts_expected_features:
                     ts_input_features += [0.0] * (ts_expected_features - len(ts_input_features))
                 elif len(ts_input_features) > ts_expected_features:
                     ts_input_features = ts_input_features[:ts_expected_features]
-                
                 try:
                     loi_input = np.array([loi_input_features])
                     loi_scaled = models["loi_scaler"].transform(loi_input)
@@ -953,7 +999,6 @@ if st.session_state.logged_in:
                 except Exception as e:
                     st.error(f"LOI预测出错: {str(e)}")
                     loi_pred = 25.0
-        
                 try:
                     ts_input = np.array([ts_input_features])
                     ts_scaled = models["ts_scaler"].transform(ts_input)
@@ -962,7 +1007,7 @@ if st.session_state.logged_in:
                 except Exception as e:
                     st.error(f"TS预测出错: {str(e)}")
                     ts_pred = 30.0
-        
+
             col1, col2 = st.columns(2)
             with col1:
                 st.metric(label="LOI预测值", value=f"{loi_pred:.2f}%")
@@ -970,7 +1015,6 @@ if st.session_state.logged_in:
                 st.metric(label="TS预测值", value=f"{ts_pred:.2f} MPa")
 
     elif page == "配方建议" and sub_page == "配方优化":
-        # ========== 逆向设计模块 ==========
         render_inverse_design_page(models)
 
     elif page == "配方建议" and sub_page == "添加剂推荐":
@@ -980,17 +1024,17 @@ if st.session_state.logged_in:
         except Exception as e:
             st.error(f"模型加载失败: {str(e)}")
             predictor = None
-            
+
         with st.expander("📋 参考样本", expanded=False):
             sample_data = [
-                {"样本名称": "样本1", "推荐添加剂": "无添加剂", 
-                 "Sn%": 19.2, "添加比例": 0.0, "一甲%": 32.0, 
+                {"样本名称": "样本1", "推荐添加剂": "无添加剂",
+                 "Sn%": 19.2, "添加比例": 0.0, "一甲%": 32.0,
                  "黄度值": [5.36, 6.29, 7.57, 8.57, 10.26, 13.21, 16.54, 27.47]},
-                {"样本名称": "样本2", "推荐添加剂": "氯化石蜡", 
-                 "Sn%": 18.5, "添加比例": 3.64, "一甲%": 31.05, 
+                {"样本名称": "样本2", "推荐添加剂": "氯化石蜡",
+                 "Sn%": 18.5, "添加比例": 3.64, "一甲%": 31.05,
                  "黄度值": [5.29, 6.83, 8.00, 9.32, 11.40, 14.12, 18.37, 30.29]},
-                {"样本名称": "样本3", "推荐添加剂": "EA15（市售液体钙锌稳定剂）", 
-                 "Sn%": 19.0, "添加比例": 1.04, "一甲%": 31.88, 
+                {"样本名称": "样本3", "推荐添加剂": "EA15（市售液体钙锌稳定剂）",
+                 "Sn%": 19.0, "添加比例": 1.04, "一甲%": 31.88,
                  "黄度值": [5.24, 6.17, 7.11, 8.95, 10.33, 13.21, 17.48, 28.08]}
             ]
             for sample in sample_data:
@@ -1004,7 +1048,7 @@ if st.session_state.logged_in:
                     "黄度值": sample['黄度值']
                 })
                 st.dataframe(yellow_df.set_index("时间(min)"), use_container_width=True)
-        
+
         if predictor:
             with st.form("additive_form"):
                 st.subheader("参数输入")
@@ -1018,7 +1062,7 @@ if st.session_state.logged_in:
                     st.markdown("**一甲含量（计算值）**")
                     st.markdown(f"`{yijia_calculated:.2f} %`")
                     st.caption("公式：一甲含量 = Sn含量 / 0.6")
-                                
+
                 st.subheader("黄度值随时间变化（请尽可能提供足够多的时序黄度值，黄度值必须单调递增）")
                 yellow_cols = st.columns(4)
                 yellow_values = {}
@@ -1030,7 +1074,7 @@ if st.session_state.logged_in:
                             value=5.29 + i * 3, step=0.1, format="%.2f", key=f"yellow_{time}"
                         )
                 submit_btn = st.form_submit_button("🚀 生成推荐方案")
-            
+
             if submit_btn:
                 sample = [
                     sn_percent, add_ratio, yijia_calculated,
