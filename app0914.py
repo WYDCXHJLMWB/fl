@@ -331,8 +331,7 @@ def load_phrr_features():
                 if match:
                     features.append(match.group(1))
 
-        # ★ 关键：过滤垃圾项，只保留合法的纯特征名
-        # 合法特征名只能包含：字母、数字、下划线、连字符、斜杠、点
+        # 过滤：只保留合法的纯特征名
         clean_features = []
         for f in features:
             f = f.strip()
@@ -363,7 +362,6 @@ def feature_engineering_phrr(p, phrr_features):
     """PHRR 特征工程"""
     df = pd.DataFrame({k: [v] for k, v in p.items()})
 
-    # 保证基础列存在
     for base in ['PP', 'PAPP', 'MPP', 'W', 'ZS', 'ADP']:
         if base not in df.columns:
             df[base] = 0.0
@@ -401,12 +399,10 @@ def feature_engineering_phrr(p, phrr_features):
     df['W_ratio'] = df['W'] / (df['total_ad'] + 1e-6) if all(c in df.columns for c in ['W','total_ad']) else 0
     df['ADP_ratio'] = df['ADP'] / (df['total_ad'] + 1e-6) if all(c in df.columns for c in ['ADP','total_ad']) else 0
 
-    # 补齐 phrr_features 里缺失的列（如 Si-Mxene、Fiber、APP、Sb2O3 等）
     for feat in phrr_features:
         if feat not in df.columns:
             df[feat] = 0.0
 
-    # 按 phrr_features 顺序取列
     df = df[phrr_features]
     return df
 
@@ -439,8 +435,7 @@ def predict_phrr(p, phrr_model, phrr_features):
         return 9999.0
 
 
-# --------------------- LOI 预测（与性能预测页面完全一致） ---------------------
-# 与性能预测页面对齐的 25 维 LOI 输入特征
+# --------------------- LOI 预测（与性能预测页面一致） ---------------------
 _LOI_MATRIX = ["PP", "PA", "PC/ABS", "POM", "PBT", "PVC"]
 _LOI_FR = ["AHP", "CFA", "ammonium octamolybdate", "Al(OH)3", "APP",
            "Pentaerythritol", "DOPO", "XS-FR-8310", "ZS", "XiuCheng", "ZHS",
@@ -449,11 +444,10 @@ _LOI_ADD = ["Anti-drip-agent", "ZBS-PV-OA", "FP-250S",
             "wollastonite", "SiO2", "silane coupling agent",
             "antioxidant", "M-2200B", "Custom Additive"]
 
-LOI_ALL_FEATURES = sorted(_LOI_MATRIX + _LOI_FR + _LOI_ADD)  # 共 33 个，会被截断到 25
+LOI_ALL_FEATURES = sorted(_LOI_MATRIX + _LOI_FR + _LOI_ADD)
 
 
 def _build_loi_vector(p, n_expected):
-    """构造与性能预测页面一致的 LOI 输入向量（截断或补齐到 n_expected 维）"""
     vec = [float(p.get(f, 0.0)) for f in LOI_ALL_FEATURES]
     if len(vec) < n_expected:
         vec += [0.0] * (n_expected - len(vec))
@@ -510,7 +504,6 @@ def render_inverse_design_page(models):
         loi_dim = getattr(loi_scaler, 'n_features_in_', '?')
         st.markdown(f"**LOI 模型**: `{type(loi_model).__name__}` | 特征数: `{loi_dim}`")
 
-    # 参数输入
     st.markdown("### ⚙️ 优化参数设置")
     col_t1, col_t2 = st.columns(2)
     with col_t1:
@@ -575,9 +568,7 @@ def render_inverse_design_page(models):
         st.dataframe(range_df, hide_index=True, use_container_width=True)
         st.markdown(f"**ADP (固定)**: {ADP_FIXED}")
 
-    # 开始优化
     if st.button("🚀 开始优化配方", type="primary", use_container_width=True):
-        # 先做一次测试预测
         test_p = {'PP': 80.0, 'PAPP': 21.0, 'MPP': 11.0, 'ZS': 1.0, 'W': 5.0, 'ADP': ADP_FIXED}
         test_phrr = predict_phrr(test_p, phrr_model, phrr_features)
         test_loi = predict_loi(test_p, loi_model, loi_scaler)
@@ -646,7 +637,8 @@ def render_inverse_design_page(models):
                 n_done = len(trials.trials)
                 valid_losses = [t['result']['loss'] for t in trials.trials
                                 if t['result']['loss'] < 9999]
-                best_loss = min(valid_losses) if valid_losses else 9999.0                progress_bar.progress(min(n_done / max_evals, 1.0))
+                best_loss = min(valid_losses) if valid_losses else 9999.0
+                progress_bar.progress(min(n_done / max_evals, 1.0))
                 status_text.text(
                     f"已完成 {n_done}/{max_evals} 次搜索，当前最优 loss={best_loss:.4f}"
                 )
