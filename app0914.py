@@ -59,7 +59,7 @@ if 'input_values' not in st.session_state:
 if 'inverse_results' not in st.session_state:
     st.session_state.inverse_results = None
 
-# --------------------- 样式配置（全局字体加大加粗，标题更大） ---------------------
+# --------------------- 样式配置 ---------------------
 def apply_global_styles():
     st.markdown("""
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -81,36 +81,49 @@ def apply_global_styles():
             color: #1e3d59;
         }
 
-        /* 标题 —— 进一步加大 */
-        h1 { font-size: 3.8rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.2; }
-        h2 { font-size: 2.6rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.25; }
-        h3 { font-size: 2rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
-        h4 { font-size: 1.5rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
+        /* 标题 */
+        h1 { font-size: 4rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.15; }
+        h2 { font-size: 2.8rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.25; }
+        h3 { font-size: 2.1rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
+        h4 { font-size: 1.6rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
 
-        /* 全局头部 */
+        /* 全局头部：图标 + 标题，横向排列 */
+        .global-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            margin: 1.5rem 0 1.5rem 0;
+            flex-wrap: wrap;
+        }
+        .global-header .logo-box {
+            flex: 0 0 auto;
+        }
+        .global-header .logo-box img {
+            width: 160px;
+            height: 160px;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+        .global-header .title-box {
+            flex: 0 1 auto;
+            text-align: left;
+        }
         .global-header h1 {
-            color: #1e3d59; margin-bottom: 0.6rem;
-            font-size: 3.8rem !important; font-weight: 900 !important;
-            text-align: center; letter-spacing: 0.5px;
+            color: #1e3d59;
+            margin: 0 0 0.3rem 0;
+            font-size: 4rem !important;
+            font-weight: 900 !important;
+            letter-spacing: 0.5px;
+            line-height: 1.15;
         }
         .global-header p {
-            color: #4a6572; font-size: 1.8rem !important;
-            font-weight: 700 !important; margin-top: 0; text-align: center;
+            color: #4a6572;
+            font-size: 2rem !important;
+            font-weight: 700 !important;
+            margin: 0;
             letter-spacing: 0.5px;
-        }
-
-        /* 顶部平台图标 */
-        .platform-logo {
-            display: flex; justify-content: center; align-items: center;
-            margin: 1rem 0 0.5rem 0;
-        }
-        .platform-logo img {
-            width: 100%;
-            max-width: 900px;
-            height: auto;
-            border-radius: 16px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-            object-fit: cover;
+            line-height: 1.2;
         }
 
         /* 功能卡片 */
@@ -201,44 +214,42 @@ def apply_global_styles():
     </style>
     """, unsafe_allow_html=True)
 
-# --------------------- 渲染顶部平台图标 ---------------------
-def render_platform_logo():
-    """在页面顶部居中渲染图片1.jpg 作为平台图标"""
+# --------------------- 渲染头部：左侧小图标 + 右侧大标题 ---------------------
+def render_global_header():
+    """图标在左，标题在右；同一行显示"""
     logo_path = "图片1.jpg"
+    img_html = ""
     if os.path.exists(logo_path):
         try:
             with open(logo_path, "rb") as f:
-                img_bytes = f.read()
-            img_b64 = base64.b64encode(img_bytes).decode()
-            st.markdown(
-                f"""
-                <div class="platform-logo">
-                    <img src="data:image/jpeg;base64,{img_b64}" alt="Platform Logo"/>
+                img_b64 = base64.b64encode(f.read()).decode()
+            img_html = f"""
+                <div class="logo-box">
+                    <img src="data:image/jpeg;base64,{img_b64}" alt="Logo"/>
                 </div>
-                """,
-                unsafe_allow_html=True
-            )
-        except Exception as e:
-            st.warning(f"图标加载失败: {e}")
-    else:
-        # 如果找不到图片，不显示任何东西，不阻塞页面
-        pass
+            """
+        except Exception:
+            img_html = ""
 
-def render_global_header():
-    st.markdown("""
-    <div class="global-header">
-        <h1>阻燃聚合物复合材料智能设计平台</h1>
-        <p>Flame Retardant Composites AI Platform</p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        f"""
+        <div class="global-header">
+            {img_html}
+            <div class="title-box">
+                <h1>阻燃聚合物复合材料智能设计平台</h1>
+                <p>Flame Retardant Composites AI Platform</p>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 # --------------------- 首页内容 ---------------------
 def show_homepage():
     apply_global_styles()
-    render_platform_logo()
     render_global_header()
     
-    st.markdown("""<div style="max-width:1400px; margin:0 auto; padding:2rem;">""", unsafe_allow_html=True)
+    st.markdown("""<div style="max-width:1400px; margin:0 auto; padding:1rem 2rem 2rem 2rem;">""", unsafe_allow_html=True)
     st.markdown("""
     <div style="font-size:1.35rem; font-weight:600; line-height:1.9; margin-bottom:2.5rem; text-align: center; color:#1e3d59;">
         🚀 本平台融合AI与材料科学技术，致力于高分子复合材料的智能化设计，
@@ -247,7 +258,7 @@ def show_homepage():
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    <h2 style="font-size:2.6rem; font-weight:900; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
+    <h2 style="font-size:2.8rem; font-weight:900; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
         🌟 核心功能
     </h2>
     """, unsafe_allow_html=True)
@@ -269,7 +280,7 @@ def show_homepage():
         """, unsafe_allow_html=True)
 
     st.markdown("""
-    <h2 style="font-size:2.6rem; font-weight:900; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
+    <h2 style="font-size:2.8rem; font-weight:900; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
         🏆 研究成果
     </h2>
     <div class="feature-card">
@@ -283,7 +294,7 @@ def show_homepage():
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    <h2 style="font-size:2.6rem; font-weight:900; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
+    <h2 style="font-size:2.8rem; font-weight:900; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
         👨💻 开发团队
     </h2>
     """, unsafe_allow_html=True)
@@ -307,7 +318,7 @@ def show_homepage():
         """, unsafe_allow_html=True)
 
     st.markdown("""<div style="margin-top: 3rem; background: #ffffff; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">""", unsafe_allow_html=True)
-    st.markdown('<h2 style="font-size:2.6rem; font-weight:900; color:#1e3d59; text-align:center; margin-bottom:1.5rem;">🔐 用户认证</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 style="font-size:2.8rem; font-weight:900; color:#1e3d59; text-align:center; margin-bottom:1.5rem;">🔐 用户认证</h2>', unsafe_allow_html=True)
     
     tab_login, tab_register, tab_forgot = st.tabs(["登录", "注册", "忘记密码"])
 
@@ -617,7 +628,7 @@ def predict_loi(p, loi_model, loi_scaler):
 # --------------------- 逆向设计主界面 ---------------------
 def render_inverse_design_page(models):
     st.markdown("""
-    <h2 style="font-size:2.6rem; font-weight:900; color:#1e3d59; text-align:left;
+    <h2 style="font-size:2.8rem; font-weight:900; color:#1e3d59; text-align:left;
                 border-bottom:3px solid #3f87a6; padding-bottom:0.5rem;">
         🎯 配方逆向优化（PHRR & LOI）
     </h2>
@@ -647,9 +658,8 @@ def render_inverse_design_page(models):
     loi_model = models["loi_model"]
     loi_scaler = models["loi_scaler"]
 
-    # ---- 参数输入 ----
     st.markdown("""
-    <h3 style="font-size:2rem; font-weight:800; color:#1e3d59; margin-top:1rem;">
+    <h3 style="font-size:2.1rem; font-weight:800; color:#1e3d59; margin-top:1rem;">
         ⚙️ 优化参数设置
     </h3>
     """, unsafe_allow_html=True)
@@ -672,7 +682,7 @@ def render_inverse_design_page(models):
     )
 
     st.markdown("""
-    <h3 style="font-size:2rem; font-weight:800; color:#1e3d59; margin-top:1.5rem;">
+    <h3 style="font-size:2.1rem; font-weight:800; color:#1e3d59; margin-top:1.5rem;">
         📐 变量范围
     </h3>
     """, unsafe_allow_html=True)
@@ -834,7 +844,7 @@ def render_inverse_design_page(models):
         df_table = pd.DataFrame(table_data)
 
         st.markdown("""
-        <h3 style="font-size:2.2rem; font-weight:900; color:#1e3d59; margin-top:1.5rem;">
+        <h3 style="font-size:2.3rem; font-weight:900; color:#1e3d59; margin-top:1.5rem;">
             🏆 最优配方
         </h3>
         """, unsafe_allow_html=True)
@@ -899,12 +909,11 @@ if st.session_state.logged_in:
             return "vol%"
 
     apply_global_styles()
-    render_platform_logo()
     render_global_header()
 
     if page == "性能预测":
         st.markdown("""
-        <h2 style="font-size:2.4rem; font-weight:900; color:#1e3d59; margin-bottom:1rem;">
+        <h2 style="font-size:2.6rem; font-weight:900; color:#1e3d59; margin-bottom:1rem;">
             🔮 性能预测：基于配方预测LOI和TS
         </h2>
         """, unsafe_allow_html=True)
@@ -1106,7 +1115,7 @@ if st.session_state.logged_in:
 
     elif page == "配方建议" and sub_page == "添加剂推荐":
         st.markdown("""
-        <h2 style="font-size:2.4rem; font-weight:900; color:#1e3d59; margin-bottom:1rem;">
+        <h2 style="font-size:2.6rem; font-weight:900; color:#1e3d59; margin-bottom:1rem;">
             🧪 PVC添加剂智能推荐
         </h2>
         """, unsafe_allow_html=True)
