@@ -299,7 +299,7 @@ ADP_FIXED = 0.3
 
 
 def load_phrr_features():
-    """加载 PHRR 特征名列表（解析 selected_features.txt）"""
+    """加载 PHRR 特征名列表（解析 selected_features.txt），过滤垃圾行"""
     features = []
     if not os.path.exists(PHRR_FEATURES_TXT):
         return features
@@ -307,7 +307,6 @@ def load_phrr_features():
         with open(PHRR_FEATURES_TXT, 'r', encoding='utf-8') as f:
             content = f.read()
 
-        # 优先解析 "选中数值特征列表:" 之后的内容
         if '选中数值特征列表:' in content:
             start_idx = content.find('选中数值特征列表:')
             feature_section = content[start_idx + len('选中数值特征列表:'):].strip()
@@ -331,6 +330,16 @@ def load_phrr_features():
                 match = re.match(r'^\d+\.\s*(.+)$', line)
                 if match:
                     features.append(match.group(1))
+
+        # ★ 关键：过滤垃圾项，只保留合法的纯特征名
+        # 合法特征名只能包含：字母、数字、下划线、连字符、斜杠、点
+        clean_features = []
+        for f in features:
+            f = f.strip()
+            if re.match(r'^[A-Za-z0-9_\-/\.]+$', f):
+                clean_features.append(f)
+        features = clean_features
+
     except Exception as e:
         st.warning(f"PHRR 特征文件解析失败: {e}")
     return features
@@ -351,7 +360,7 @@ def load_phrr_model():
 
 
 def feature_engineering_phrr(p, phrr_features):
-    """PHRR 特征工程（完全复用逆向设计代码）"""
+    """PHRR 特征工程"""
     df = pd.DataFrame({k: [v] for k, v in p.items()})
 
     # 保证基础列存在
@@ -392,7 +401,7 @@ def feature_engineering_phrr(p, phrr_features):
     df['W_ratio'] = df['W'] / (df['total_ad'] + 1e-6) if all(c in df.columns for c in ['W','total_ad']) else 0
     df['ADP_ratio'] = df['ADP'] / (df['total_ad'] + 1e-6) if all(c in df.columns for c in ['ADP','total_ad']) else 0
 
-    # 补齐 phrr_features 里缺失的列
+    # 补齐 phrr_features 里缺失的列（如 Si-Mxene、Fiber、APP、Sb2O3 等）
     for feat in phrr_features:
         if feat not in df.columns:
             df[feat] = 0.0
@@ -430,14 +439,34 @@ def predict_phrr(p, phrr_model, phrr_features):
         return 9999.0
 
 
-# --------------------- LOI 特征顺序 ---------------------
-LOI_FEATURES = ["PP", "AHP", "CFA", "APP", "Pentaerythritol", "DOPO", "ZS", "ZHS", "ZnB"]
+# --------------------- LOI 预测（与性能预测页面完全一致） ---------------------
+# 与性能预测页面对齐的 25 维 LOI 输入特征
+_LOI_MATRIX = ["PP", "PA", "PC/ABS", "POM", "PBT", "PVC"]
+_LOI_FR = ["AHP", "CFA", "ammonium octamolybdate", "Al(OH)3", "APP",
+           "Pentaerythritol", "DOPO", "XS-FR-8310", "ZS", "XiuCheng", "ZHS",
+           "ZnB", "antimony oxides", "Mg(OH)2", "TCA", "MPP", "PAPP", "其他"]
+_LOI_ADD = ["Anti-drip-agent", "ZBS-PV-OA", "FP-250S",
+            "wollastonite", "SiO2", "silane coupling agent",
+            "antioxidant", "M-2200B", "Custom Additive"]
+
+LOI_ALL_FEATURES = sorted(_LOI_MATRIX + _LOI_FR + _LOI_ADD)  # 共 33 个，会被截断到 25
+
+
+def _build_loi_vector(p, n_expected):
+    """构造与性能预测页面一致的 LOI 输入向量（截断或补齐到 n_expected 维）"""
+    vec = [float(p.get(f, 0.0)) for f in LOI_ALL_FEATURES]
+    if len(vec) < n_expected:
+        vec += [0.0] * (n_expected - len(vec))
+    else:
+        vec = vec[:n_expected]
+    return vec
 
 
 def predict_loi(p, loi_model, loi_scaler):
-    """根据配方 p 预测 LOI"""
+    """根据配方 p 预测 LOI（自动适配 scaler 期望的特征维度）"""
     try:
-        vec = [float(p.get(f, 0.0)) for f in LOI_FEATURES]
+        n_expected = getattr(loi_scaler, 'n_features_in_', 25)
+        vec = _build_loi_vector(p, n_expected)
         x = np.array([vec], dtype=np.float64)
         x_scaled = loi_scaler.transform(x)
         pred = loi_model.predict(x_scaled)[0]
@@ -478,7 +507,8 @@ def render_inverse_design_page(models):
     with col_info1:
         st.markdown(f"**PHRR 模型**: `{type(phrr_model).__name__}` | 特征数: `{len(phrr_features)}`")
     with col_info2:
-        st.markdown(f"**LOI 模型**: `{type(loi_model).__name__}` | 特征数: `{len(LOI_FEATURES)}`")
+        loi_dim = getattr(loi_scaler, 'n_features_in_', '?')
+        st.markdown(f"**LOI 模型**: `{type(loi_model).__name__}` | 特征数: `{loi_dim}`")
 
     # 参数输入
     st.markdown("### ⚙️ 优化参数设置")
@@ -554,7 +584,8 @@ def render_inverse_design_page(models):
 
         if test_phrr == 9999.0 or test_loi == 9999.0:
             st.error("❌ 预测函数自检失败。请检查模型和特征文件是否正确。")
-            st.write(f"测试 PHRR: {test_phrr}, 测试 LOI: {test_loi}")
+            st.write(f"测试 PHRR: {test_phrr}")
+            st.write(f"测试 LOI: {test_loi}")
             st.write(f"PHRR 特征名（{len(phrr_features)}个）：{phrr_features}")
             return
 
@@ -615,8 +646,7 @@ def render_inverse_design_page(models):
                 n_done = len(trials.trials)
                 valid_losses = [t['result']['loss'] for t in trials.trials
                                 if t['result']['loss'] < 9999]
-                best_loss = min(valid_losses) if valid_losses else 9999.0
-                progress_bar.progress(min(n_done / max_evals, 1.0))
+                best_loss = min(valid_losses) if valid_losses else 9999.0                progress_bar.progress(min(n_done / max_evals, 1.0))
                 status_text.text(
                     f"已完成 {n_done}/{max_evals} 次搜索，当前最优 loss={best_loss:.4f}"
                 )
