@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Sep 14 16:20:56 2026
-
-@author: ma'wei'bin
-"""
-
 import streamlit as st
 import pandas as pd
 import bcrypt
@@ -13,7 +6,6 @@ import joblib
 import numpy as np
 from scipy import stats
 from sklearn.impute import SimpleImputer
-import re
 import warnings
 from datetime import datetime
 
@@ -289,8 +281,9 @@ class Predictor:
         return self.model.predict(X_scaled)[0]
 
 # --------------------- PHRR 模型加载与特征工程 ---------------------
-PHRR_MODEL_PATH = os.path.join("models", "phrr_model.pkl")
-PHRR_FEATURES_TXT = os.path.join("models", "phrr_features.txt")
+# 直接读取 GitHub 仓库根目录下的实际文件名
+PHRR_MODEL_PATH = "catboost_regressor_145302.pkl"
+PHRR_FEATURES_PKL = "phrr_train_features.pkl"
 
 PHRR_VARIABLE_RANGES = {
     'PP': (60, 110),
@@ -303,27 +296,28 @@ ADP_FIXED = 0.3
 
 
 def load_phrr_features():
-    """加载PHRR特征名列表"""
+    """加载PHRR特征名列表（从 pkl 文件读取）"""
     features = []
-    if os.path.exists(PHRR_FEATURES_TXT):
+    if os.path.exists(PHRR_FEATURES_PKL):
         try:
-            with open(PHRR_FEATURES_TXT, 'r', encoding='utf-8') as f:
-                content = f.read()
-            if '选中数值特征列表:' in content:
-                start_idx = content.find('选中数值特征列表:')
-                feature_section = content[start_idx + len('选中数值特征列表:'):].strip()
-                for line in feature_section.split('\n'):
-                    line = line.strip()
-                    if not line:
-                        continue
-                    match = re.match(r'^\d+\.\s*(.+)$', line)
-                    if match:
-                        features.append(match.group(1))
-                    elif line and not line.startswith('=') and not line.startswith('--'):
-                        if not any(k in line for k in ['实验随机种子', '核心特征', '总数值特征数', '选中特征数量']):
-                            features.append(line)
+            obj = joblib.load(PHRR_FEATURES_PKL)
+            if isinstance(obj, list):
+                features = [str(f) for f in obj]
+            elif isinstance(obj, np.ndarray):
+                features = [str(f) for f in obj.tolist()]
+            elif isinstance(obj, pd.Index):
+                features = [str(f) for f in obj.tolist()]
+            elif isinstance(obj, dict):
+                for key in ['features', 'selected_features', 'feature_names', 'columns']:
+                    if key in obj:
+                        features = [str(f) for f in obj[key]]
+                        break
+            else:
+                st.warning(f"⚠️ 无法识别的特征文件格式：{type(obj)}")
         except Exception as e:
-            st.warning(f"PHRR特征文件解析失败: {e}")
+            st.warning(f"PHRR 特征文件解析失败: {e}")
+    else:
+        st.warning(f"⚠️ 未找到特征文件：{PHRR_FEATURES_PKL}")
     return features
 
 
@@ -334,8 +328,10 @@ def load_phrr_model():
         if os.path.exists(PHRR_MODEL_PATH):
             model = joblib.load(PHRR_MODEL_PATH)
             return model
+        else:
+            st.error(f"❌ 模型文件不存在：{PHRR_MODEL_PATH}")
     except Exception as e:
-        st.error(f"PHRR模型加载失败: {e}")
+        st.error(f"PHRR 模型加载失败: {e}")
     return None
 
 
@@ -410,7 +406,7 @@ def predict_phrr(p, phrr_model, phrr_features):
         return 9999.0
 
 
-# --------------------- LOI 特征顺序（复用性能预测页面） ---------------------
+# --------------------- LOI 特征顺序 ---------------------
 LOI_FEATURES = ["PP", "AHP", "CFA", "APP", "Pentaerythritol", "DOPO", "ZS", "ZHS", "ZnB"]
 
 
@@ -445,8 +441,7 @@ def render_inverse_design_page(models):
     phrr_features = load_phrr_features()
 
     if phrr_model is None:
-        st.error(f"❌ PHRR 模型加载失败。请确认模型文件存在于 `{PHRR_MODEL_PATH}`。")
-        st.info("提示：可将逆向设计代码中的 `catboost_regressor_xxxx.pkl` 复制到 `models/phrr_model.pkl`。")
+        st.error(f"❌ PHRR 模型加载失败。请确认模型文件 `{PHRR_MODEL_PATH}` 存在。")
         return
 
     if len(phrr_features) == 0:
