@@ -1164,7 +1164,7 @@ if st.session_state.logged_in:
     st.markdown("""
     <hr>
     <footer>
-        <p>© 2025 阻燃聚合物复合材料智能设计平台</p>
+        <p>© 2026 阻燃聚合物复合材料智能设计平台</p>
         <p>声明：本平台仅供学术研究、技术验证等非营利性科研活动使用，严禁用于任何商业用途。</p>
     </footer>
     """, unsafe_allow_html=True)
