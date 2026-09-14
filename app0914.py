@@ -133,37 +133,44 @@ def apply_global_styles():
     </style>
     """, unsafe_allow_html=True)
 
-# --------------------- 渲染头部：内联样式，绝对生效 ---------------------
+# --------------------- 渲染头部：大标题（130px） ---------------------
 def render_global_header():
-    st.markdown(
-        """
-        <div style="text-align: center; margin: 2rem 0 2rem 0; padding: 1rem 0;">
-            <div style="
-                color: #1e3d59;
-                font-family: 'Segoe UI', 'Microsoft YaHei', Tahoma, Geneva, Verdana, sans-serif;
-                font-size: 110px;
-                font-weight: 900;
-                letter-spacing: 4px;
-                line-height: 1.15;
-                margin-bottom: 1rem;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.08);
-            ">
-                阻燃聚合物复合材料智能设计平台
-            </div>
-            <div style="
-                color: #4a6572;
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                font-size: 36px;
-                font-weight: 700;
-                letter-spacing: 3px;
-                line-height: 1.2;
-            ">
-                Flame Retardant Composites AI Platform
-            </div>
+    html_content = """
+    <div style="
+        text-align: center;
+        padding: 20px 10px 30px 10px;
+    ">
+        <div style="
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Segoe UI', sans-serif;
+            font-size: 130px;
+            font-weight: 900;
+            color: #1e3d59;
+            letter-spacing: 2px;
+            line-height: 1.05;
+            margin: 0 0 22px 0;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.12);
+            white-space: nowrap;
+        ">
+            阻燃聚合物复合材料智能设计平台
         </div>
-        """,
-        unsafe_allow_html=True
-    )
+        <div style="
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 46px;
+            font-weight: 700;
+            color: #4a6572;
+            letter-spacing: 3px;
+            line-height: 1.2;
+            margin: 0;
+            white-space: nowrap;
+        ">
+            Flame Retardant Composites AI Platform
+        </div>
+    </div>
+    """
+    try:
+        st.html(html_content)
+    except AttributeError:
+        st.markdown(html_content, unsafe_allow_html=True)
 
 # --------------------- 首页内容 ---------------------
 def show_homepage():
