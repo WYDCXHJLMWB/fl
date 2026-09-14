@@ -58,19 +58,130 @@ if 'input_values' not in st.session_state:
 if 'inverse_results' not in st.session_state:
     st.session_state.inverse_results = None
 
-# --------------------- 样式配置 ---------------------
+# --------------------- 样式配置（全局字体加大加粗） ---------------------
 def apply_global_styles():
     st.markdown("""
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <style>
-        .stApp { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .global-header h1 { color: #1e3d59; margin-bottom: 0.5rem; font-size: 2.8rem !important; text-align: center; }
-        .global-header p { color: #4a6572; font-size: 1.5rem !important; margin-top: 0; text-align: center; }
-        .feature-card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 1.5rem; border-left: 4px solid #3f87a6; }
-        .stTextInput input, .stNumberInput input, .stSelectbox select { padding: 12px 16px !important; font-size: 16px !important; border-radius: 8px !important; }
-        .stButton button { background-color: #3f87a6 !important; color: white !important; border-radius: 8px !important; padding: 10px 20px !important; font-weight: 500 !important; transition: all 0.3s ease !important; }
+        /* 全局字体与颜色 */
+        html, body, .stApp {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #1e3d59;
+            font-size: 18px !important;
+            font-weight: 500 !important;
+        }
+
+        /* 所有正文字体加大加粗 */
+        .stApp p, .stApp span, .stApp div, .stApp label,
+        .stMarkdown, .stText, .stCaption {
+            font-size: 18px !important;
+            font-weight: 500 !important;
+            color: #1e3d59;
+        }
+
+        /* 标题 */
+        h1 { font-size: 3rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
+        h2 { font-size: 2rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
+        h3 { font-size: 1.6rem !important; font-weight: 700 !important; color: #1e3d59 !important; }
+        h4 { font-size: 1.3rem !important; font-weight: 700 !important; color: #1e3d59 !important; }
+
+        /* 全局头部 */
+        .global-header h1 {
+            color: #1e3d59; margin-bottom: 0.5rem;
+            font-size: 3rem !important; font-weight: 800 !important;
+            text-align: center;
+        }
+        .global-header p {
+            color: #4a6572; font-size: 1.6rem !important;
+            font-weight: 600 !important; margin-top: 0; text-align: center;
+        }
+
+        /* 功能卡片 */
+        .feature-card {
+            background: white; padding: 1.5rem; border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 1.5rem;
+            border-left: 4px solid #3f87a6;
+        }
+        .feature-card h3 { font-size: 1.5rem !important; font-weight: 700 !important; }
+        .feature-card p  { font-size: 1.15rem !important; font-weight: 500 !important; }
+
+        /* 输入框 */
+        .stTextInput input, .stNumberInput input, .stSelectbox select,
+        .stMultiSelect div[data-baseweb="select"] {
+            padding: 14px 18px !important;
+            font-size: 18px !important;
+            font-weight: 600 !important;
+            border-radius: 8px !important;
+        }
+
+        /* 数字输入的 +/- 按钮 */
+        .stNumberInput button {
+            font-size: 20px !important;
+            font-weight: 800 !important;
+        }
+
+        /* 侧边栏 */
+        section[data-testid="stSidebar"] * {
+            font-size: 18px !important;
+            font-weight: 600 !important;
+        }
+
+        /* 按钮 */
+        .stButton button {
+            background-color: #3f87a6 !important; color: white !important;
+            border-radius: 8px !important; padding: 12px 24px !important;
+            font-size: 18px !important; font-weight: 700 !important;
+            transition: all 0.3s ease !important;
+        }
         .stButton button:hover { background-color: #2c6a8a !important; }
-        footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #eaeaea; color: #6c757d; font-size: 0.9rem; text-align: center; }
+
+        /* Metric 组件 */
+        div[data-testid="stMetric"] label {
+            font-size: 18px !important;
+            font-weight: 700 !important;
+            color: #4a6572 !important;
+        }
+        div[data-testid="stMetricValue"] {
+            font-size: 28px !important;
+            font-weight: 800 !important;
+            color: #1e3d59 !important;
+        }
+
+        /* 表格 */
+        .stDataFrame table, .stDataFrame th, .stDataFrame td,
+        div[data-testid="stDataFrame"] * {
+            font-size: 17px !important;
+            font-weight: 600 !important;
+        }
+        .stDataFrame th { font-weight: 800 !important; }
+
+        /* Expander */
+        .streamlit-expanderHeader, details summary {
+            font-size: 18px !important;
+            font-weight: 700 !important;
+        }
+
+        /* 输入框标签 */
+        .stNumberInput label, .stTextInput label, .stSelectbox label,
+        .stMultiSelect label, .stRadio label, .stCheckbox label {
+            font-size: 18px !important;
+            font-weight: 700 !important;
+            color: #1e3d59 !important;
+        }
+
+        /* 页脚 */
+        footer {
+            margin-top: 3rem; padding-top: 1.5rem;
+            border-top: 1px solid #eaeaea; color: #6c757d;
+            font-size: 15px; text-align: center;
+        }
+
+        /* 进度条与提示 */
+        .stProgress, .stAlert, .stInfo, .stWarning, .stSuccess, .stError {
+            font-size: 17px !important;
+            font-weight: 600 !important;
+        }
     </style>
     """, unsafe_allow_html=True)
 
@@ -89,14 +200,14 @@ def show_homepage():
     
     st.markdown("""<div style="max-width:1400px; margin:0 auto; padding:2rem;">""", unsafe_allow_html=True)
     st.markdown("""
-    <div style="font-size:1.2rem; line-height:1.6; margin-bottom:2.5rem; text-align: center;">
+    <div style="font-size:1.3rem; font-weight:600; line-height:1.8; margin-bottom:2.5rem; text-align: center; color:#1e3d59;">
         🚀 本平台融合AI与材料科学技术，致力于高分子复合材料的智能化设计，
         重点关注阻燃性能、力学性能和热稳定性的多目标优化与调控。
     </div>
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    <h2 style="font-size:1.8rem; color:#1e3d59; border-bottom: 2px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
+    <h2 style="font-size:2rem; font-weight:800; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
         🌟 核心功能
     </h2>
     """, unsafe_allow_html=True)
@@ -105,34 +216,34 @@ def show_homepage():
     with col1:
         st.markdown("""
         <div class="feature-card">
-            <h3 style="font-size:1.4rem; color:#1e3d59; margin:0 0 1rem 0;">🔥 智能性能预测</h3>
-            <p style="font-size:1.1rem;">• 支持LOI（极限氧指数）预测<br>• TS（拉伸强度）预测<br></p>
+            <h3 style="color:#1e3d59; margin:0 0 1rem 0;">🔥 智能性能预测</h3>
+            <p style="font-size:1.15rem; font-weight:500;">• 支持LOI（极限氧指数）预测<br>• TS（拉伸强度）预测<br></p>
         </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown("""
         <div class="feature-card">
-            <h3 style="font-size:1.4rem; color:#1e3d59; margin:0 0 1rem 0;">⚗️ 配方优化系统</h3>
-            <p style="font-size:1.1rem;">• 根据输入目标推荐配方<br>• 支持选择配方种类<br>• 添加剂比例智能推荐<br>• 多目标逆向设计(PHRR/LOI)</p>
+            <h3 style="color:#1e3d59; margin:0 0 1rem 0;">⚗️ 配方优化系统</h3>
+            <p style="font-size:1.15rem; font-weight:500;">• 根据输入目标推荐配方<br>• 支持选择配方种类<br>• 添加剂比例智能推荐<br>• 多目标逆向设计(PHRR/LOI)</p>
         </div>
         """, unsafe_allow_html=True)
 
     st.markdown("""
-    <h2 style="font-size:1.8rem; color:#1e3d59; border-bottom: 2px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
+    <h2 style="font-size:2rem; font-weight:800; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
         🏆 研究成果
     </h2>
     <div class="feature-card">
-        <p style="font-size:1.1rem;">
+        <p style="font-size:1.15rem; font-weight:500;">
             Ma Weibin, Li Ling, Zhang Yu, et al.<br>
             <em>Active learning-based generative design of halogen-free flame-retardant polymeric composites.</em><br>
             <strong>Journal of Materials Informatics</strong> 2025;5:09.<br>
-            DOI: <a href="https://doi.org/10.20517/jmi.2025.09" target="_blank" style="color:#3f87a6; text-decoration:underline;">10.20517/jmi.2025.09</a>
+            DOI: <a href="https://doi.org/10.20517/jmi.2025.09" target="_blank" style="color:#3f87a6; text-decoration:underline; font-weight:700;">10.20517/jmi.2025.09</a>
         </p>
     </div>
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    <h2 style="font-size:1.8rem; color:#1e3d59; border-bottom: 2px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
+    <h2 style="font-size:2rem; font-weight:800; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
         👨💻 开发团队
     </h2>
     """, unsafe_allow_html=True)
@@ -141,7 +252,7 @@ def show_homepage():
     with col_dev:
         st.markdown("""
         <div class="feature-card">
-            <p style="font-size:1.1rem;">
+            <p style="font-size:1.15rem; font-weight:500;">
                 上海大学功能高分子<br>PolyDesign<br>马维宾 | 李凌 | 张瑜<br>宋娜 | 丁鹏<br>
                 上海大学计算机学院<br>韩越兴 | 李睿杰<br>
             </p>
@@ -150,13 +261,13 @@ def show_homepage():
     with col_sup:
         st.markdown("""
         <div class="feature-card">
-            <h3 style="font-size:1.4rem; color:#1e3d59; margin:0 0 1rem 0;">🙏 项目支持</h3>
-            <p style="font-size:1.1rem;">云南省科技重点计划<br>项目编号：202302AB080022<br></p>
+            <h3 style="color:#1e3d59; margin:0 0 1rem 0;">🙏 项目支持</h3>
+            <p style="font-size:1.15rem; font-weight:500;">云南省科技重点计划<br>项目编号：202302AB080022<br></p>
         </div>
         """, unsafe_allow_html=True)
 
     st.markdown("""<div style="margin-top: 3rem; background: #ffffff; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">""", unsafe_allow_html=True)
-    st.markdown('<h2 style="font-size:1.8rem; color:#1e3d59; text-align:center; margin-bottom:1.5rem;">🔐 用户认证</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 style="font-size:2rem; font-weight:800; color:#1e3d59; text-align:center; margin-bottom:1.5rem;">🔐 用户认证</h2>', unsafe_allow_html=True)
     
     tab_login, tab_register, tab_forgot = st.tabs(["登录", "注册", "忘记密码"])
 
@@ -465,12 +576,18 @@ def predict_loi(p, loi_model, loi_scaler):
 
 # --------------------- 逆向设计主界面 ---------------------
 def render_inverse_design_page(models):
-    st.subheader("🎯 配方逆向优化（PHRR & LOI）")
     st.markdown("""
-    输入你期望达到的 **PHRR（热释放速率峰值）** 和 **LOI（极限氧指数）** 目标值，
-    系统会自动搜索出最接近目标的 **3 个最优配方**。
-    所有配方各组分之和严格等于 100。
-    """)
+    <h2 style="font-size:2rem; font-weight:800; color:#1e3d59; text-align:left;
+                border-bottom:3px solid #3f87a6; padding-bottom:0.5rem;">
+        🎯 配方逆向优化（PHRR & LOI）
+    </h2>
+    """, unsafe_allow_html=True)
+    st.markdown("""
+    <div style="font-size:1.2rem; font-weight:600; color:#1e3d59; line-height:1.7; margin-bottom:1.5rem;">
+        输入你期望达到的 <b>PHRR（热释放速率峰值）</b> 和 <b>LOI（极限氧指数）</b> 目标值，
+        系统会自动搜索出最接近目标的 <b>3 个最优配方</b>。
+    </div>
+    """, unsafe_allow_html=True)
 
     phrr_model = load_phrr_model()
     phrr_features = load_phrr_features()
@@ -491,7 +608,12 @@ def render_inverse_design_page(models):
     loi_scaler = models["loi_scaler"]
 
     # ---- 参数输入 ----
-    st.markdown("### ⚙️ 优化参数设置")
+    st.markdown("""
+    <h3 style="font-size:1.6rem; font-weight:800; color:#1e3d59; margin-top:1rem;">
+        ⚙️ 优化参数设置
+    </h3>
+    """, unsafe_allow_html=True)
+
     col_t1, col_t2 = st.columns(2)
     with col_t1:
         target_phrr = st.number_input(
@@ -509,8 +631,11 @@ def render_inverse_design_page(models):
         min_value=50, max_value=20000, value=2000, step=100
     )
 
-    st.markdown("### 📐 变量范围")
-    st.caption("说明：本次搜索变量包括 PAPP、MPP、ZS、W，PP 由总和 100 自动补齐，ADP 固定为 0.3。")
+    st.markdown("""
+    <h3 style="font-size:1.6rem; font-weight:800; color:#1e3d59; margin-top:1.5rem;">
+        📐 变量范围
+    </h3>
+    """, unsafe_allow_html=True)
 
     use_default_ranges = st.checkbox("使用推荐的取值范围", value=True)
     if use_default_ranges:
@@ -536,7 +661,6 @@ def render_inverse_design_page(models):
             ranges['W'] = (w_min, w_max)
 
     if st.button("🚀 开始优化配方", type="primary", use_container_width=True):
-        # 自检
         test_p = {'PP': 75.0, 'PAPP': 21.0, 'MPP': 11.0, 'ZS': 1.0, 'W': 5.0, 'ADP': ADP_FIXED}
         test_phrr = predict_phrr(test_p, phrr_model, phrr_features)
         test_loi = predict_loi(test_p, loi_model, loi_scaler)
@@ -640,7 +764,6 @@ def render_inverse_design_page(models):
         df_res = pd.DataFrame(history)
         df_res = df_res[df_res['loss'] < 9999].sort_values('loss').reset_index(drop=True)
 
-        # 去重
         df_res['_key'] = df_res.apply(
             lambda r: (round(r['PP'], 2), round(r['PAPP'], 2),
                        round(r['MPP'], 2), round(r['ZS'], 2), round(r['W'], 2)),
@@ -650,11 +773,9 @@ def render_inverse_design_page(models):
 
         st.session_state.inverse_results = df_res
 
-        # 只取前 3 个最优配方
         TOP_N = 3
         best = df_res.head(TOP_N).reset_index(drop=True)
 
-        # 构造只含配方组分与预测性能的表格（不含总和、Loss）
         table_data = []
         for i in range(len(best)):
             row = best.iloc[i]
@@ -672,7 +793,12 @@ def render_inverse_design_page(models):
 
         df_table = pd.DataFrame(table_data)
 
-        st.markdown("### 🏆 最优配方")
+        st.markdown("""
+        <h3 style="font-size:1.7rem; font-weight:800; color:#1e3d59; margin-top:1.5rem;">
+            🏆 最优配方
+        </h3>
+        """, unsafe_allow_html=True)
+
         st.dataframe(df_table, hide_index=True, use_container_width=True)
 
         csv = df_table.to_csv(index=False, encoding='utf-8-sig')
@@ -1015,7 +1141,7 @@ if st.session_state.logged_in:
                     col_res, col_table = st.columns([1, 2])
                     with col_res:
                         st.markdown(f"### **在添加剂比例为{additive_amount:.4f} 份时，推荐添加剂种类为**")
-                        st.markdown(f"<div style='font-size:24px; color:#3f87a6; font-weight:bold; margin:10px 0;'>{additive_name}</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div style='font-size:26px; color:#3f87a6; font-weight:800; margin:10px 0;'>{additive_name}</div>", unsafe_allow_html=True)
                     with col_table:
                         st.markdown("### **完整配方表**")
                         st.dataframe(
