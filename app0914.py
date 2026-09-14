@@ -76,33 +76,9 @@ def apply_global_styles():
             font-weight: 500 !important;
             color: #1e3d59;
         }
-        /* H1 大幅加大：中文主标题 */
-        h1 { font-size: 8rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.1; }
         h2 { font-size: 3.2rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.25; }
         h3 { font-size: 2.4rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
         h4 { font-size: 1.8rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
-
-        /* 全局头部：只有大标题，居中显示 */
-        .global-header {
-            text-align: center;
-            margin: 2rem 0 2rem 0;
-        }
-        .global-header h1 {
-            color: #1e3d59;
-            margin: 0 0 1rem 0;
-            font-size: 8rem !important;
-            font-weight: 900 !important;
-            letter-spacing: 2px;
-            line-height: 1.1;
-        }
-        .global-header p {
-            color: #4a6572;
-            font-size: 2.6rem !important;
-            font-weight: 700 !important;
-            margin: 0;
-            letter-spacing: 1px;
-            line-height: 1.2;
-        }
 
         .feature-card {
             background: white; padding: 1.6rem; border-radius: 12px;
@@ -157,13 +133,33 @@ def apply_global_styles():
     </style>
     """, unsafe_allow_html=True)
 
-# --------------------- 渲染头部：只有大标题，居中 ---------------------
+# --------------------- 渲染头部：内联样式，绝对生效 ---------------------
 def render_global_header():
     st.markdown(
         """
-        <div class="global-header">
-            <h1>阻燃聚合物复合材料智能设计平台</h1>
-            <p>Flame Retardant Composites AI Platform</p>
+        <div style="text-align: center; margin: 2rem 0 2rem 0; padding: 1rem 0;">
+            <div style="
+                color: #1e3d59;
+                font-family: 'Segoe UI', 'Microsoft YaHei', Tahoma, Geneva, Verdana, sans-serif;
+                font-size: 110px;
+                font-weight: 900;
+                letter-spacing: 4px;
+                line-height: 1.15;
+                margin-bottom: 1rem;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.08);
+            ">
+                阻燃聚合物复合材料智能设计平台
+            </div>
+            <div style="
+                color: #4a6572;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                font-size: 36px;
+                font-weight: 700;
+                letter-spacing: 3px;
+                line-height: 1.2;
+            ">
+                Flame Retardant Composites AI Platform
+            </div>
         </div>
         """,
         unsafe_allow_html=True
