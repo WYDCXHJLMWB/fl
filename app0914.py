@@ -321,7 +321,6 @@ def load_phrr_features():
                     if not any(k in line for k in ['实验随机种子', '核心特征', '总数值特征数', '选中特征数量']):
                         features.append(line)
 
-        # 兜底：逐行匹配 "数字. 特征名"
         if not features:
             for line in content.split('\n'):
                 line = line.strip()
@@ -331,7 +330,6 @@ def load_phrr_features():
                 if match:
                     features.append(match.group(1))
 
-        # 过滤：只保留合法的纯特征名
         clean_features = []
         for f in features:
             f = f.strip()
@@ -435,7 +433,7 @@ def predict_phrr(p, phrr_model, phrr_features):
         return 9999.0
 
 
-# --------------------- LOI 预测（与性能预测页面一致） ---------------------
+# --------------------- LOI 预测 ---------------------
 _LOI_MATRIX = ["PP", "PA", "PC/ABS", "POM", "PBT", "PVC"]
 _LOI_FR = ["AHP", "CFA", "ammonium octamolybdate", "Al(OH)3", "APP",
            "Pentaerythritol", "DOPO", "XS-FR-8310", "ZS", "XiuCheng", "ZHS",
@@ -592,6 +590,7 @@ def render_inverse_design_page(models):
 
         history = []
         evaluated = set()
+        counter = {'n': 0}
 
         def objective(params):
             tup = tuple(round(params[k], 4) for k in ['PP', 'PAPP', 'MPP', 'ZS', 'W'])
@@ -622,6 +621,15 @@ def render_inverse_design_page(models):
             })
             return loss
 
+        # 统一的进度更新函数（用计数器，不依赖 hyperopt 内部结构）
+        def update_progress():
+            counter['n'] += 1
+            n_done = counter['n']
+            valid = [h['loss'] for h in history if h['loss'] < 9999]
+            best_loss = min(valid) if valid else 9999.0
+            progress_bar.progress(min(n_done / max_evals, 1.0))
+            status_text.text(f"已完成 {n_done}/{max_evals} 次搜索，当前最优 loss={best_loss:.4f}")
+
         if HAS_HYPEROPT:
             space = {
                 'PP': hp.uniform('PP', ranges['PP'][0], ranges['PP'][1]),
@@ -630,18 +638,10 @@ def render_inverse_design_page(models):
                 'ZS': hp.uniform('ZS', ranges['ZS'][0], ranges['ZS'][1]),
                 'W': hp.uniform('W', ranges['W'][0], ranges['W'][1])
             }
-            trials = Trials()
 
             def objective_hp(params):
                 loss = objective(params)
-                n_done = len(trials.trials)
-                valid_losses = [t['result']['loss'] for t in trials.trials
-                                if t['result']['loss'] < 9999]
-                best_loss = min(valid_losses) if valid_losses else 9999.0
-                progress_bar.progress(min(n_done / max_evals, 1.0))
-                status_text.text(
-                    f"已完成 {n_done}/{max_evals} 次搜索，当前最优 loss={best_loss:.4f}"
-                )
+                update_progress()
                 return {'loss': loss, 'status': STATUS_OK}
 
             fmin(
@@ -649,7 +649,7 @@ def render_inverse_design_page(models):
                 space=space,
                 algo=tpe.suggest,
                 max_evals=max_evals,
-                trials=trials,
+                trials=Trials(),
                 show_progressbar=False
             )
         else:
@@ -663,13 +663,7 @@ def render_inverse_design_page(models):
                     'W': rng.uniform(*ranges['W']),
                 }
                 objective(params)
-                if i % max(1, max_evals // 100) == 0:
-                    progress_bar.progress(min((i + 1) / max_evals, 1.0))
-                    valid = [h for h in history if h['loss'] < 9999]
-                    best_loss = min([h['loss'] for h in valid]) if valid else 9999
-                    status_text.text(
-                        f"已完成 {i+1}/{max_evals} 次搜索，当前最优 loss={best_loss:.4f}"
-                    )
+                update_progress()
 
         progress_bar.progress(1.0)
         status_text.text(f"✅ 优化完成！共搜索 {len(history)} 个有效配方。")
