@@ -76,22 +76,22 @@ def apply_global_styles():
             font-weight: 500 !important;
             color: #1e3d59;
         }
-        h1 { font-size: 4.5rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.15; }
+        h1 { font-size: 6rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.15; }
         h2 { font-size: 3rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.25; }
         h3 { font-size: 2.2rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
         h4 { font-size: 1.7rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
 
-        /* 全局头部：只有标题，居中显示 */
+        /* 全局头部：只有大标题，居中显示 */
         .global-header {
             text-align: center;
             margin: 2rem 0 2rem 0;
         }
         .global-header h1 {
             color: #1e3d59;
-            margin: 0 0 0.6rem 0;
-            font-size: 4.5rem !important;
+            margin: 0 0 0.8rem 0;
+            font-size: 6rem !important;
             font-weight: 900 !important;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             line-height: 1.15;
         }
         .global-header p {
