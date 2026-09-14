@@ -468,7 +468,7 @@ def render_inverse_design_page(models):
     st.subheader("🎯 配方逆向优化（PHRR & LOI）")
     st.markdown("""
     输入你期望达到的 **PHRR（热释放速率峰值）** 和 **LOI（极限氧指数）** 目标值，
-    系统会自动搜索出最接近目标的 **3 个最优配方**，供实验验证参考。
+    系统会自动搜索出最接近目标的 **3 个最优配方**。
     所有配方各组分之和严格等于 100。
     """)
 
@@ -504,15 +504,10 @@ def render_inverse_design_page(models):
             value=28.0, step=0.5, format="%.1f"
         )
 
-    col_e1, col_e2 = st.columns(2)
-    with col_e1:
-        max_evals = st.number_input(
-            "搜索精细度（推荐 1000–5000）",
-            min_value=50, max_value=20000, value=2000, step=100
-        )
-    with col_e2:
-        st.markdown("**输出最优配方数量**")
-        st.markdown("`固定为 3 个`")
+    max_evals = st.number_input(
+        "搜索精细度（推荐 1000–5000）",
+        min_value=50, max_value=20000, value=2000, step=100
+    )
 
     st.markdown("### 📐 变量范围")
     st.caption("说明：本次搜索变量包括 PAPP、MPP、ZS、W，PP 由总和 100 自动补齐，ADP 固定为 0.3。")
@@ -540,14 +535,6 @@ def render_inverse_design_page(models):
             w_max = st.number_input("W 最大", value=9.0, step=0.5)
             ranges['W'] = (w_min, w_max)
 
-    with st.expander("📋 当前变量范围", expanded=False):
-        range_df = pd.DataFrame([
-            {"变量": k, "最小值": v[0], "最大值": v[1]} for k, v in ranges.items()
-        ])
-        st.dataframe(range_df, hide_index=True, use_container_width=True)
-        st.markdown(f"**ADP (固定)**: {ADP_FIXED}")
-        st.markdown("**PP**: 自动补齐（PP = 100 − PAPP − MPP − ZS − W − ADP）")
-
     if st.button("🚀 开始优化配方", type="primary", use_container_width=True):
         # 自检
         test_p = {'PP': 75.0, 'PAPP': 21.0, 'MPP': 11.0, 'ZS': 1.0, 'W': 5.0, 'ADP': ADP_FIXED}
@@ -556,9 +543,6 @@ def render_inverse_design_page(models):
 
         if test_phrr == 9999.0 or test_loi == 9999.0:
             st.error("❌ 预测函数自检失败。请检查模型和特征文件是否正确。")
-            st.write(f"测试 PHRR: {test_phrr}")
-            st.write(f"测试 LOI: {test_loi}")
-            st.write(f"PHRR 特征名（{len(phrr_features)}个）：{phrr_features}")
             return
 
         progress_bar = st.progress(0.0)
@@ -569,7 +553,6 @@ def render_inverse_design_page(models):
             HAS_HYPEROPT = True
         except ImportError:
             HAS_HYPEROPT = False
-            st.warning("未安装 hyperopt，将使用内置随机搜索。")
 
         history = []
         evaluated = set()
@@ -583,9 +566,7 @@ def render_inverse_design_page(models):
 
             p = params.copy()
             p['ADP'] = ADP_FIXED
-            # 自动补齐 PP，使总和 = 100
             pp = 100.0 - p['PAPP'] - p['MPP'] - p['ZS'] - p['W'] - ADP_FIXED
-            # 约束 PP 合理范围
             if pp < 50.0 or pp > 100.0:
                 return 9999.0
             p['PP'] = pp
@@ -650,7 +631,7 @@ def render_inverse_design_page(models):
                 update_progress()
 
         progress_bar.progress(1.0)
-        status_text.text(f"✅ 优化完成！共搜索 {len(history)} 个有效配方。")
+        status_text.empty()
 
         if len(history) == 0:
             st.error("❌ 未找到任何有效配方，请检查变量范围或模型。")
@@ -659,7 +640,7 @@ def render_inverse_design_page(models):
         df_res = pd.DataFrame(history)
         df_res = df_res[df_res['loss'] < 9999].sort_values('loss').reset_index(drop=True)
 
-        # 按 (PP, PAPP, MPP, ZS, W) 去重，避免相同配方的微小数值差异
+        # 去重
         df_res['_key'] = df_res.apply(
             lambda r: (round(r['PP'], 2), round(r['PAPP'], 2),
                        round(r['MPP'], 2), round(r['ZS'], 2), round(r['W'], 2)),
@@ -669,81 +650,34 @@ def render_inverse_design_page(models):
 
         st.session_state.inverse_results = df_res
 
-        # ---- 只取前 3 个最优配方 ----
+        # 只取前 3 个最优配方
         TOP_N = 3
         best = df_res.head(TOP_N).reset_index(drop=True)
 
-        st.markdown(f"### 🏆 最优配方（共 {len(best)} 个）")
-
-        # ---- 以列表形式输出 ----
-        formula_list = []
+        # 构造只含配方组分与预测性能的表格（不含总和、Loss）
+        table_data = []
         for i in range(len(best)):
             row = best.iloc[i]
-            formula = {
-                "配方编号": i + 1,
+            table_data.append({
+                "配方": f"配方{i+1}",
                 "PP": round(float(row['PP']), 2),
                 "PAPP": round(float(row['PAPP']), 2),
                 "MPP": round(float(row['MPP']), 2),
                 "ZS": round(float(row['ZS']), 2),
                 "W": round(float(row['W']), 2),
                 "ADP": round(float(row['ADP']), 2),
-                "总和": round(float(row['PP'] + row['PAPP'] + row['MPP'] + row['ZS'] + row['W'] + row['ADP']), 2),
                 "预测PHRR": round(float(row['phrr_pred']), 2),
                 "预测LOI": round(float(row['loi_pred']), 2),
-                "综合Loss": round(float(row['loss']), 4)
-            }
-            formula_list.append(formula)
+            })
 
-        # 用 st.code 展示列表，方便一键复制
-        st.markdown("#### 📋 配方列表（可直接复制）")
-        st.code(repr(formula_list), language="python")
+        df_table = pd.DataFrame(table_data)
 
-        # 同时用表格展示，阅读更直观
-        st.markdown("#### 📊 配方详情表")
-        df_show = pd.DataFrame(formula_list)
-        st.dataframe(df_show, hide_index=True, use_container_width=True)
+        st.markdown("### 🏆 最优配方")
+        st.dataframe(df_table, hide_index=True, use_container_width=True)
 
-        # 逐条卡片展示
-        st.markdown("#### 🔍 配方详情")
-        for i, f in enumerate(formula_list):
-            st.markdown(
-                f"""
-                <div style="background:white; padding:1.2rem 1.5rem; border-radius:12px;
-                            box-shadow:0 4px 12px rgba(0,0,0,0.06); margin-bottom:0.6rem;
-                            border-left:5px solid #3f87a6;">
-                    <h4 style="color:#1e3d59; margin:0;">
-                        配方 {f['配方编号']} &nbsp;|&nbsp;
-                        <span style="color:#3f87a6;">综合 Loss = {f['综合Loss']:.4f}</span>
-                        &nbsp;|&nbsp; 总和 = {f['总和']:.2f}
-                    </h4>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-            c1, c2, c3, c4, c5, c6 = st.columns(6)
-            c1.metric("PP", f"{f['PP']:.2f}")
-            c2.metric("PAPP", f"{f['PAPP']:.2f}")
-            c3.metric("MPP", f"{f['MPP']:.2f}")
-            c4.metric("ZS", f"{f['ZS']:.2f}")
-            c5.metric("W", f"{f['W']:.2f}")
-            c6.metric("ADP", f"{f['ADP']:.2f}")
-
-            p1, p2, p3, p4 = st.columns(4)
-            p1.metric("预测 PHRR (kW/m²)", f"{f['预测PHRR']:.1f}",
-                      delta=f"{f['预测PHRR'] - target_phrr:+.1f} vs 目标",
-                      delta_color="inverse")
-            p2.metric("预测 LOI (%)", f"{f['预测LOI']:.2f}",
-                      delta=f"{f['预测LOI'] - target_loi:+.2f} vs 目标")
-            p3.metric("PHRR 相对误差", f"{abs(f['预测PHRR'] - target_phrr) / max(target_phrr, 1e-6) * 100:.2f}%")
-            p4.metric("LOI 相对误差", f"{abs(f['预测LOI'] - target_loi) / max(target_loi, 1e-6) * 100:.2f}%")
-
-            st.markdown("---")
-
-        # 下载
-        csv = df_res.head(TOP_N).to_csv(index=False, encoding='utf-8-sig')
+        csv = df_table.to_csv(index=False, encoding='utf-8-sig')
         st.download_button(
-            "📥 下载 3 个最优配方 (CSV)",
+            "📥 下载配方表 (CSV)",
             data=csv,
             file_name=f"top3_formulations_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
             mime="text/csv",
