@@ -1,0 +1,25 @@
+GA特征选择结果（2026-07-21 14:32:12）
+实验随机种子: 9
+核心特征: ['PAPP', 'MPP', 'W', 'ZS', 'ADP', 'total_ad']
+总数值特征数: 33
+选中特征数量: 14
+选中数值特征列表:
+1. PAPP
+2. MPP
+3. W
+4. ZS
+5. ADP
+6. Si-Mxene
+7. Fiber
+8. APP
+9. Sb2O3
+10. total_ad
+11. PAPP_ratio
+12. synergist_total
+13. W_ratio_in_synergist
+14. PAPP_W_ratio
+
+交叉验证评估指标（训练集）:
+R²: 0.424
+RMSE: 84.52
+精度达标率: 63.4%
