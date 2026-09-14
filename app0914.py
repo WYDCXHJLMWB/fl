@@ -76,10 +76,11 @@ def apply_global_styles():
             font-weight: 500 !important;
             color: #1e3d59;
         }
-        h1 { font-size: 6rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.15; }
-        h2 { font-size: 3rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.25; }
-        h3 { font-size: 2.2rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
-        h4 { font-size: 1.7rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
+        /* H1 大幅加大：中文主标题 */
+        h1 { font-size: 8rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.1; }
+        h2 { font-size: 3.2rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.25; }
+        h3 { font-size: 2.4rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
+        h4 { font-size: 1.8rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
 
         /* 全局头部：只有大标题，居中显示 */
         .global-header {
@@ -88,15 +89,15 @@ def apply_global_styles():
         }
         .global-header h1 {
             color: #1e3d59;
-            margin: 0 0 0.8rem 0;
-            font-size: 6rem !important;
+            margin: 0 0 1rem 0;
+            font-size: 8rem !important;
             font-weight: 900 !important;
-            letter-spacing: 1.5px;
-            line-height: 1.15;
+            letter-spacing: 2px;
+            line-height: 1.1;
         }
         .global-header p {
             color: #4a6572;
-            font-size: 2.4rem !important;
+            font-size: 2.6rem !important;
             font-weight: 700 !important;
             margin: 0;
             letter-spacing: 1px;
@@ -182,7 +183,7 @@ def show_homepage():
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    <h2 style="font-size:3rem; font-weight:900; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
+    <h2 style="font-size:3.2rem; font-weight:900; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
         🌟 核心功能
     </h2>
     """, unsafe_allow_html=True)
@@ -204,7 +205,7 @@ def show_homepage():
         """, unsafe_allow_html=True)
 
     st.markdown("""
-    <h2 style="font-size:3rem; font-weight:900; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
+    <h2 style="font-size:3.2rem; font-weight:900; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
         🏆 研究成果
     </h2>
     <div class="feature-card">
@@ -218,7 +219,7 @@ def show_homepage():
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    <h2 style="font-size:3rem; font-weight:900; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
+    <h2 style="font-size:3.2rem; font-weight:900; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
         👨💻 开发团队
     </h2>
     """, unsafe_allow_html=True)
@@ -242,7 +243,7 @@ def show_homepage():
         """, unsafe_allow_html=True)
 
     st.markdown("""<div style="margin-top: 3rem; background: #ffffff; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">""", unsafe_allow_html=True)
-    st.markdown('<h2 style="font-size:3rem; font-weight:900; color:#1e3d59; text-align:center; margin-bottom:1.5rem;">🔐 用户认证</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 style="font-size:3.2rem; font-weight:900; color:#1e3d59; text-align:center; margin-bottom:1.5rem;">🔐 用户认证</h2>', unsafe_allow_html=True)
     
     tab_login, tab_register, tab_forgot = st.tabs(["登录", "注册", "忘记密码"])
 
@@ -552,7 +553,7 @@ def predict_loi(p, loi_model, loi_scaler):
 # --------------------- 逆向设计主界面 ---------------------
 def render_inverse_design_page(models):
     st.markdown("""
-    <h2 style="font-size:3rem; font-weight:900; color:#1e3d59; text-align:left;
+    <h2 style="font-size:3.2rem; font-weight:900; color:#1e3d59; text-align:left;
                 border-bottom:3px solid #3f87a6; padding-bottom:0.5rem;">
         🎯 配方逆向优化（PHRR & LOI）
     </h2>
@@ -583,7 +584,7 @@ def render_inverse_design_page(models):
     loi_scaler = models["loi_scaler"]
 
     st.markdown("""
-    <h3 style="font-size:2.2rem; font-weight:800; color:#1e3d59; margin-top:1rem;">
+    <h3 style="font-size:2.4rem; font-weight:800; color:#1e3d59; margin-top:1rem;">
         ⚙️ 优化参数设置
     </h3>
     """, unsafe_allow_html=True)
@@ -606,7 +607,7 @@ def render_inverse_design_page(models):
     )
 
     st.markdown("""
-    <h3 style="font-size:2.2rem; font-weight:800; color:#1e3d59; margin-top:1.5rem;">
+    <h3 style="font-size:2.4rem; font-weight:800; color:#1e3d59; margin-top:1.5rem;">
         📐 变量范围
     </h3>
     """, unsafe_allow_html=True)
@@ -768,7 +769,7 @@ def render_inverse_design_page(models):
         df_table = pd.DataFrame(table_data)
 
         st.markdown("""
-        <h3 style="font-size:2.5rem; font-weight:900; color:#1e3d59; margin-top:1.5rem;">
+        <h3 style="font-size:2.7rem; font-weight:900; color:#1e3d59; margin-top:1.5rem;">
             🏆 最优配方
         </h3>
         """, unsafe_allow_html=True)
@@ -837,7 +838,7 @@ if st.session_state.logged_in:
 
     if page == "性能预测":
         st.markdown("""
-        <h2 style="font-size:2.8rem; font-weight:900; color:#1e3d59; margin-bottom:1rem;">
+        <h2 style="font-size:3rem; font-weight:900; color:#1e3d59; margin-bottom:1rem;">
             🔮 性能预测：基于配方预测LOI和TS
         </h2>
         """, unsafe_allow_html=True)
@@ -1039,7 +1040,7 @@ if st.session_state.logged_in:
 
     elif page == "配方建议" and sub_page == "添加剂推荐":
         st.markdown("""
-        <h2 style="font-size:2.8rem; font-weight:900; color:#1e3d59; margin-bottom:1rem;">
+        <h2 style="font-size:3rem; font-weight:900; color:#1e3d59; margin-bottom:1rem;">
             🧪 PVC添加剂智能推荐
         </h2>
         """, unsafe_allow_html=True)
