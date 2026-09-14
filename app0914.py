@@ -64,7 +64,6 @@ def apply_global_styles():
     st.markdown("""
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <style>
-        /* 全局字体与颜色 */
         html, body, .stApp {
             background-color: #f8f9fa;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -72,22 +71,17 @@ def apply_global_styles():
             font-size: 18px !important;
             font-weight: 500 !important;
         }
-
-        /* 正文 */
         .stApp p, .stApp span, .stApp div, .stApp label,
         .stMarkdown, .stText, .stCaption {
             font-size: 18px !important;
             font-weight: 500 !important;
             color: #1e3d59;
         }
-
-        /* 标题 */
         h1 { font-size: 4rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.15; }
         h2 { font-size: 2.8rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.25; }
         h3 { font-size: 2.1rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
         h4 { font-size: 1.6rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
 
-        /* 全局头部：图标 + 标题，横向排列 */
         .global-header {
             display: flex;
             align-items: center;
@@ -126,7 +120,6 @@ def apply_global_styles():
             line-height: 1.2;
         }
 
-        /* 功能卡片 */
         .feature-card {
             background: white; padding: 1.6rem; border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 1.5rem;
@@ -135,7 +128,6 @@ def apply_global_styles():
         .feature-card h3 { font-size: 1.8rem !important; font-weight: 800 !important; }
         .feature-card p  { font-size: 1.25rem !important; font-weight: 600 !important; line-height: 1.7; }
 
-        /* 输入框 */
         .stTextInput input, .stNumberInput input, .stSelectbox select,
         .stMultiSelect div[data-baseweb="select"] {
             padding: 14px 18px !important;
@@ -143,20 +135,8 @@ def apply_global_styles():
             font-weight: 600 !important;
             border-radius: 8px !important;
         }
-
-        /* 数字输入的 +/- 按钮 */
-        .stNumberInput button {
-            font-size: 20px !important;
-            font-weight: 800 !important;
-        }
-
-        /* 侧边栏 */
-        section[data-testid="stSidebar"] * {
-            font-size: 19px !important;
-            font-weight: 600 !important;
-        }
-
-        /* 按钮 */
+        .stNumberInput button { font-size: 20px !important; font-weight: 800 !important; }
+        section[data-testid="stSidebar"] * { font-size: 19px !important; font-weight: 600 !important; }
         .stButton button {
             background-color: #3f87a6 !important; color: white !important;
             border-radius: 8px !important; padding: 12px 24px !important;
@@ -164,72 +144,72 @@ def apply_global_styles():
             transition: all 0.3s ease !important;
         }
         .stButton button:hover { background-color: #2c6a8a !important; }
-
-        /* Metric 组件 */
         div[data-testid="stMetric"] label {
-            font-size: 19px !important;
-            font-weight: 700 !important;
-            color: #4a6572 !important;
+            font-size: 19px !important; font-weight: 700 !important; color: #4a6572 !important;
         }
         div[data-testid="stMetricValue"] {
-            font-size: 30px !important;
-            font-weight: 900 !important;
-            color: #1e3d59 !important;
+            font-size: 30px !important; font-weight: 900 !important; color: #1e3d59 !important;
         }
-
-        /* 表格 */
         .stDataFrame table, .stDataFrame th, .stDataFrame td,
         div[data-testid="stDataFrame"] * {
-            font-size: 18px !important;
-            font-weight: 600 !important;
+            font-size: 18px !important; font-weight: 600 !important;
         }
         .stDataFrame th { font-weight: 800 !important; }
-
-        /* Expander */
         .streamlit-expanderHeader, details summary {
-            font-size: 19px !important;
-            font-weight: 700 !important;
+            font-size: 19px !important; font-weight: 700 !important;
         }
-
-        /* 输入框标签 */
         .stNumberInput label, .stTextInput label, .stSelectbox label,
         .stMultiSelect label, .stRadio label, .stCheckbox label {
-            font-size: 19px !important;
-            font-weight: 700 !important;
-            color: #1e3d59 !important;
+            font-size: 19px !important; font-weight: 700 !important; color: #1e3d59 !important;
         }
-
-        /* 页脚 */
         footer {
             margin-top: 3rem; padding-top: 1.5rem;
             border-top: 1px solid #eaeaea; color: #6c757d;
             font-size: 15px; text-align: center;
         }
-
-        /* 进度条与提示 */
         .stProgress, .stAlert, .stInfo, .stWarning, .stSuccess, .stError {
-            font-size: 18px !important;
-            font-weight: 600 !important;
+            font-size: 18px !important; font-weight: 600 !important;
         }
     </style>
     """, unsafe_allow_html=True)
 
 # --------------------- 渲染头部：左侧小图标 + 右侧大标题 ---------------------
 def render_global_header():
-    """图标在左，标题在右；同一行显示"""
-    logo_path = "图片1.jpg"
+    """图标在左，标题在右；自动尝试多个图片文件名和格式"""
+    # 候选图片文件（按优先级）
+    candidates = [
+        ("图片1.jpg", "image/jpeg"),
+        ("图片1.png", "image/png"),
+        ("BG.png",    "image/png"),
+        ("BG.jpg",    "image/jpeg"),
+        ("logo.png",  "image/png"),
+        ("logo.jpg",  "image/jpeg"),
+    ]
+
     img_html = ""
-    if os.path.exists(logo_path):
-        try:
-            with open(logo_path, "rb") as f:
-                img_b64 = base64.b64encode(f.read()).decode()
-            img_html = f"""
-                <div class="logo-box">
-                    <img src="data:image/jpeg;base64,{img_b64}" alt="Logo"/>
-                </div>
-            """
-        except Exception:
-            img_html = ""
+    for fname, mime in candidates:
+        if os.path.exists(fname):
+            try:
+                with open(fname, "rb") as f:
+                    raw = f.read()
+                # 校验：真图片至少几百字节，且前几字节符合图片魔数
+                if len(raw) < 100:
+                    continue
+                head = raw[:4]
+                is_jpeg = head[:3] == b'\xff\xd8\xff'
+                is_png  = head[:4] == b'\x89PNG'
+                if not (is_jpeg or is_png):
+                    # 不是真图片，跳过
+                    continue
+                img_b64 = base64.b64encode(raw).decode()
+                img_html = f"""
+                    <div class="logo-box">
+                        <img src="data:{mime};base64,{img_b64}" alt="Logo"/>
+                    </div>
+                """
+                break
+            except Exception:
+                continue
 
     st.markdown(
         f"""
