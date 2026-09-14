@@ -1138,8 +1138,8 @@ if st.session_state.logged_in:
                     additive_name = result_map.get(prediction, "未知类型")
                     additive_amount = add_ratio / 100
                     formula_data = [
-                        ["PVC", 100.00], ["加工助剂ACR", 1.00], ["外滑剂70S", 0.35],
-                        ["MBS", 5.00], ["316A", 0.20], ["稳定剂", 1.00]
+                        ["PVC", 100.0], ["加工助剂ACR", 1.0], ["外滑剂70S", 0.4],
+                        ["MBS", 5.0], ["316A", 0.2], ["稳定剂", 1.0]
                     ]
                     df = pd.DataFrame(formula_data, columns=["材料名称", "份数（基于PVC 100份）"])
                     st.success("添加剂推荐完成！")
@@ -1153,7 +1153,7 @@ if st.session_state.logged_in:
                             df, use_container_width=True, hide_index=True,
                             column_config={
                                 "材料名称": "材料名称",
-                                "份数（基于PVC 100份）": st.column_config.NumberColumn("份数", format="%.4f")
+                                "份数（基于PVC 100份）": st.column_config.NumberColumn("份数", format="%.1f")
                             }
                         )
                 except Exception as e:
