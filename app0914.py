@@ -154,18 +154,18 @@ def render_global_header():
                 .title-cn {
                     font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB',
                                  'Heiti SC', 'WenQuanYi Micro Hei', 'Segoe UI', sans-serif;
-                    font-size: 96px;
+                    font-size: 64px;
                     font-weight: 900;
                     color: #1e3d59;
                     text-align: center;
-                    line-height: 1.1;
-                    letter-spacing: 4px;
-                    margin: 10px 0 24px 0;
+                    line-height: 1.15;
+                    letter-spacing: 3px;
+                    margin: 10px 0 18px 0;
                     padding: 0 20px;
                 }
                 .title-en {
                     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    font-size: 34px;
+                    font-size: 26px;
                     font-weight: 700;
                     color: #4a6572;
                     text-align: center;
@@ -182,7 +182,7 @@ def render_global_header():
         </body>
         </html>
         """,
-        height=280,
+        height=200,
         scrolling=False,
     )
 
