@@ -9,7 +9,6 @@ from sklearn.impute import SimpleImputer
 import warnings
 from datetime import datetime
 import re
-import base64
 
 warnings.filterwarnings('ignore')
 
@@ -77,46 +76,30 @@ def apply_global_styles():
             font-weight: 500 !important;
             color: #1e3d59;
         }
-        h1 { font-size: 4rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.15; }
-        h2 { font-size: 2.8rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.25; }
-        h3 { font-size: 2.1rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
-        h4 { font-size: 1.6rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
+        h1 { font-size: 4.5rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.15; }
+        h2 { font-size: 3rem !important; font-weight: 900 !important; color: #1e3d59 !important; line-height: 1.25; }
+        h3 { font-size: 2.2rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
+        h4 { font-size: 1.7rem !important; font-weight: 800 !important; color: #1e3d59 !important; }
 
+        /* 全局头部：只有标题，居中显示 */
         .global-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1.5rem;
-            margin: 1.5rem 0 1.5rem 0;
-            flex-wrap: wrap;
-        }
-        .global-header .logo-box {
-            flex: 0 0 auto;
-        }
-        .global-header .logo-box img {
-            width: 160px;
-            height: 160px;
-            object-fit: contain;
-            border-radius: 12px;
-        }
-        .global-header .title-box {
-            flex: 0 1 auto;
-            text-align: left;
+            text-align: center;
+            margin: 2rem 0 2rem 0;
         }
         .global-header h1 {
             color: #1e3d59;
-            margin: 0 0 0.3rem 0;
-            font-size: 4rem !important;
+            margin: 0 0 0.6rem 0;
+            font-size: 4.5rem !important;
             font-weight: 900 !important;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
             line-height: 1.15;
         }
         .global-header p {
             color: #4a6572;
-            font-size: 2rem !important;
+            font-size: 2.4rem !important;
             font-weight: 700 !important;
             margin: 0;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
             line-height: 1.2;
         }
 
@@ -173,52 +156,13 @@ def apply_global_styles():
     </style>
     """, unsafe_allow_html=True)
 
-# --------------------- 渲染头部：左侧小图标 + 右侧大标题 ---------------------
+# --------------------- 渲染头部：只有大标题，居中 ---------------------
 def render_global_header():
-    """图标在左，标题在右；自动尝试多个图片文件名和格式"""
-    # 候选图片文件（按优先级）
-    candidates = [
-        ("图片1.jpg", "image/jpeg"),
-        ("图片1.png", "image/png"),
-        ("BG.png",    "image/png"),
-        ("BG.jpg",    "image/jpeg"),
-        ("logo.png",  "image/png"),
-        ("logo.jpg",  "image/jpeg"),
-    ]
-
-    img_html = ""
-    for fname, mime in candidates:
-        if os.path.exists(fname):
-            try:
-                with open(fname, "rb") as f:
-                    raw = f.read()
-                # 校验：真图片至少几百字节，且前几字节符合图片魔数
-                if len(raw) < 100:
-                    continue
-                head = raw[:4]
-                is_jpeg = head[:3] == b'\xff\xd8\xff'
-                is_png  = head[:4] == b'\x89PNG'
-                if not (is_jpeg or is_png):
-                    # 不是真图片，跳过
-                    continue
-                img_b64 = base64.b64encode(raw).decode()
-                img_html = f"""
-                    <div class="logo-box">
-                        <img src="data:{mime};base64,{img_b64}" alt="Logo"/>
-                    </div>
-                """
-                break
-            except Exception:
-                continue
-
     st.markdown(
-        f"""
+        """
         <div class="global-header">
-            {img_html}
-            <div class="title-box">
-                <h1>阻燃聚合物复合材料智能设计平台</h1>
-                <p>Flame Retardant Composites AI Platform</p>
-            </div>
+            <h1>阻燃聚合物复合材料智能设计平台</h1>
+            <p>Flame Retardant Composites AI Platform</p>
         </div>
         """,
         unsafe_allow_html=True
@@ -231,14 +175,14 @@ def show_homepage():
     
     st.markdown("""<div style="max-width:1400px; margin:0 auto; padding:1rem 2rem 2rem 2rem;">""", unsafe_allow_html=True)
     st.markdown("""
-    <div style="font-size:1.35rem; font-weight:600; line-height:1.9; margin-bottom:2.5rem; text-align: center; color:#1e3d59;">
+    <div style="font-size:1.4rem; font-weight:600; line-height:1.9; margin-bottom:2.5rem; text-align: center; color:#1e3d59;">
         🚀 本平台融合AI与材料科学技术，致力于高分子复合材料的智能化设计，
         重点关注阻燃性能、力学性能和热稳定性的多目标优化与调控。
     </div>
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    <h2 style="font-size:2.8rem; font-weight:900; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
+    <h2 style="font-size:3rem; font-weight:900; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
         🌟 核心功能
     </h2>
     """, unsafe_allow_html=True)
@@ -260,7 +204,7 @@ def show_homepage():
         """, unsafe_allow_html=True)
 
     st.markdown("""
-    <h2 style="font-size:2.8rem; font-weight:900; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
+    <h2 style="font-size:3rem; font-weight:900; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
         🏆 研究成果
     </h2>
     <div class="feature-card">
@@ -274,7 +218,7 @@ def show_homepage():
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    <h2 style="font-size:2.8rem; font-weight:900; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
+    <h2 style="font-size:3rem; font-weight:900; color:#1e3d59; border-bottom: 3px solid #3f87a6; padding-bottom:0.5rem; margin-bottom:1.5rem;">
         👨💻 开发团队
     </h2>
     """, unsafe_allow_html=True)
@@ -298,7 +242,7 @@ def show_homepage():
         """, unsafe_allow_html=True)
 
     st.markdown("""<div style="margin-top: 3rem; background: #ffffff; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">""", unsafe_allow_html=True)
-    st.markdown('<h2 style="font-size:2.8rem; font-weight:900; color:#1e3d59; text-align:center; margin-bottom:1.5rem;">🔐 用户认证</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 style="font-size:3rem; font-weight:900; color:#1e3d59; text-align:center; margin-bottom:1.5rem;">🔐 用户认证</h2>', unsafe_allow_html=True)
     
     tab_login, tab_register, tab_forgot = st.tabs(["登录", "注册", "忘记密码"])
 
@@ -608,13 +552,13 @@ def predict_loi(p, loi_model, loi_scaler):
 # --------------------- 逆向设计主界面 ---------------------
 def render_inverse_design_page(models):
     st.markdown("""
-    <h2 style="font-size:2.8rem; font-weight:900; color:#1e3d59; text-align:left;
+    <h2 style="font-size:3rem; font-weight:900; color:#1e3d59; text-align:left;
                 border-bottom:3px solid #3f87a6; padding-bottom:0.5rem;">
         🎯 配方逆向优化（PHRR & LOI）
     </h2>
     """, unsafe_allow_html=True)
     st.markdown("""
-    <div style="font-size:1.3rem; font-weight:600; color:#1e3d59; line-height:1.8; margin-bottom:1.5rem;">
+    <div style="font-size:1.35rem; font-weight:600; color:#1e3d59; line-height:1.8; margin-bottom:1.5rem;">
         输入你期望达到的 <b>PHRR（热释放速率峰值）</b> 和 <b>LOI（极限氧指数）</b> 目标值，
         系统会自动搜索出最接近目标的 <b>3 个最优配方</b>。
     </div>
@@ -639,7 +583,7 @@ def render_inverse_design_page(models):
     loi_scaler = models["loi_scaler"]
 
     st.markdown("""
-    <h3 style="font-size:2.1rem; font-weight:800; color:#1e3d59; margin-top:1rem;">
+    <h3 style="font-size:2.2rem; font-weight:800; color:#1e3d59; margin-top:1rem;">
         ⚙️ 优化参数设置
     </h3>
     """, unsafe_allow_html=True)
@@ -662,7 +606,7 @@ def render_inverse_design_page(models):
     )
 
     st.markdown("""
-    <h3 style="font-size:2.1rem; font-weight:800; color:#1e3d59; margin-top:1.5rem;">
+    <h3 style="font-size:2.2rem; font-weight:800; color:#1e3d59; margin-top:1.5rem;">
         📐 变量范围
     </h3>
     """, unsafe_allow_html=True)
@@ -824,7 +768,7 @@ def render_inverse_design_page(models):
         df_table = pd.DataFrame(table_data)
 
         st.markdown("""
-        <h3 style="font-size:2.3rem; font-weight:900; color:#1e3d59; margin-top:1.5rem;">
+        <h3 style="font-size:2.5rem; font-weight:900; color:#1e3d59; margin-top:1.5rem;">
             🏆 最优配方
         </h3>
         """, unsafe_allow_html=True)
@@ -893,7 +837,7 @@ if st.session_state.logged_in:
 
     if page == "性能预测":
         st.markdown("""
-        <h2 style="font-size:2.6rem; font-weight:900; color:#1e3d59; margin-bottom:1rem;">
+        <h2 style="font-size:2.8rem; font-weight:900; color:#1e3d59; margin-bottom:1rem;">
             🔮 性能预测：基于配方预测LOI和TS
         </h2>
         """, unsafe_allow_html=True)
@@ -1095,7 +1039,7 @@ if st.session_state.logged_in:
 
     elif page == "配方建议" and sub_page == "添加剂推荐":
         st.markdown("""
-        <h2 style="font-size:2.6rem; font-weight:900; color:#1e3d59; margin-bottom:1rem;">
+        <h2 style="font-size:2.8rem; font-weight:900; color:#1e3d59; margin-bottom:1rem;">
             🧪 PVC添加剂智能推荐
         </h2>
         """, unsafe_allow_html=True)
