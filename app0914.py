@@ -135,7 +135,7 @@ def apply_global_styles():
     """, unsafe_allow_html=True)
 
 
-# --------------------- 渲染头部：用 iframe，绝对生效 ---------------------
+# --------------------- 渲染头部：英文拆两行，绝对完整显示 ---------------------
 def render_global_header():
     components.html(
         """
@@ -154,35 +154,38 @@ def render_global_header():
                 .title-cn {
                     font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB',
                                  'Heiti SC', 'WenQuanYi Micro Hei', 'Segoe UI', sans-serif;
-                    font-size: 64px;
+                    font-size: 56px;
                     font-weight: 900;
                     color: #1e3d59;
                     text-align: center;
                     line-height: 1.15;
-                    letter-spacing: 3px;
-                    margin: 10px 0 18px 0;
-                    padding: 0 20px;
+                    letter-spacing: 2px;
+                    margin: 8px 0 16px 0;
+                    padding: 0 15px;
+                    white-space: nowrap;
                 }
                 .title-en {
                     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    font-size: 26px;
+                    font-size: 20px;
                     font-weight: 700;
                     color: #4a6572;
                     text-align: center;
-                    line-height: 1.2;
-                    letter-spacing: 3px;
+                    line-height: 1.5;
+                    letter-spacing: 2px;
                     margin: 0;
-                    padding: 0 20px;
+                    padding: 0 15px;
+                    white-space: nowrap;
                 }
             </style>
         </head>
         <body>
             <div class="title-cn">阻燃聚合物复合材料智能设计平台</div>
-            <div class="title-en">Flame Retardant Composites AI Platform</div>
+            <div class="title-en">Flame Retardant Composites</div>
+            <div class="title-en">AI Platform</div>
         </body>
         </html>
         """,
-        height=200,
+        height=230,
         scrolling=False,
     )
 
