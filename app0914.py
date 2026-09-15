@@ -132,27 +132,29 @@ def apply_global_styles():
             font-size: 18px !important; font-weight: 600 !important;
         }
 
-        /* ===== 全局标题样式（修复标题被裁切问题） ===== */
+        /* ===== 全局标题样式（保持56px大字号 + 中文分两行） ===== */
         .app-header-wrap {
             width: 100%;
             text-align: center;
-            padding: 10px 8px 22px 8px;
+            padding: 12px 8px 18px 8px;
             box-sizing: border-box;
         }
         .app-title-cn {
             font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB',
                          'Heiti SC', 'WenQuanYi Micro Hei', 'Segoe UI', sans-serif;
-            font-size: 52px;
+            font-size: 56px;
             font-weight: 900;
             color: #1e3d59;
-            line-height: 1.3;
+            line-height: 1.2;
             letter-spacing: 2px;
-            margin: 0 auto 14px auto;
+            margin: 0 auto 6px auto;
             padding: 0;
-            white-space: normal;
-            word-break: keep-all;
+            white-space: nowrap;
             display: block;
             width: 100%;
+        }
+        .app-title-cn-2 {
+            margin: 0 auto 16px auto;
         }
         .app-title-en {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -163,32 +165,33 @@ def apply_global_styles():
             letter-spacing: 2px;
             margin: 0 auto;
             padding: 0;
-            white-space: normal;
+            white-space: nowrap;
             display: block;
             width: 100%;
         }
         @media (max-width: 1200px) {
-            .app-title-cn { font-size: 44px; }
+            .app-title-cn { font-size: 48px; }
             .app-title-en { font-size: 18px; }
         }
         @media (max-width: 900px) {
-            .app-title-cn { font-size: 36px; letter-spacing: 1px; }
+            .app-title-cn { font-size: 38px; letter-spacing: 1px; }
             .app-title-en { font-size: 16px; letter-spacing: 1px; }
         }
         @media (max-width: 600px) {
-            .app-title-cn { font-size: 26px; letter-spacing: 0.5px; line-height: 1.35; }
+            .app-title-cn { font-size: 28px; letter-spacing: 0.5px; }
             .app-title-en { font-size: 14px; letter-spacing: 0.5px; }
         }
     </style>
     """, unsafe_allow_html=True)
 
 
-# --------------------- 渲染头部：改为 st.markdown，永不裁切 ---------------------
+# --------------------- 渲染头部：中文分两行，保持56px大字号 ---------------------
 def render_global_header():
     st.markdown(
         """
         <div class="app-header-wrap">
-            <div class="app-title-cn">阻燃聚合物复合材料智能设计平台</div>
+            <div class="app-title-cn">阻燃聚合物复合材料</div>
+            <div class="app-title-cn app-title-cn-2">智能设计平台</div>
             <div class="app-title-en">Flame Retardant Composites</div>
             <div class="app-title-en">AI Platform</div>
         </div>
