@@ -131,62 +131,69 @@ def apply_global_styles():
         .stProgress, .stAlert, .stInfo, .stWarning, .stSuccess, .stError {
             font-size: 18px !important; font-weight: 600 !important;
         }
+
+        /* ===== 全局标题样式（修复标题被裁切问题） ===== */
+        .app-header-wrap {
+            width: 100%;
+            text-align: center;
+            padding: 10px 8px 22px 8px;
+            box-sizing: border-box;
+        }
+        .app-title-cn {
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB',
+                         'Heiti SC', 'WenQuanYi Micro Hei', 'Segoe UI', sans-serif;
+            font-size: 52px;
+            font-weight: 900;
+            color: #1e3d59;
+            line-height: 1.3;
+            letter-spacing: 2px;
+            margin: 0 auto 14px auto;
+            padding: 0;
+            white-space: normal;
+            word-break: keep-all;
+            display: block;
+            width: 100%;
+        }
+        .app-title-en {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: #4a6572;
+            line-height: 1.5;
+            letter-spacing: 2px;
+            margin: 0 auto;
+            padding: 0;
+            white-space: normal;
+            display: block;
+            width: 100%;
+        }
+        @media (max-width: 1200px) {
+            .app-title-cn { font-size: 44px; }
+            .app-title-en { font-size: 18px; }
+        }
+        @media (max-width: 900px) {
+            .app-title-cn { font-size: 36px; letter-spacing: 1px; }
+            .app-title-en { font-size: 16px; letter-spacing: 1px; }
+        }
+        @media (max-width: 600px) {
+            .app-title-cn { font-size: 26px; letter-spacing: 0.5px; line-height: 1.35; }
+            .app-title-en { font-size: 14px; letter-spacing: 0.5px; }
+        }
     </style>
     """, unsafe_allow_html=True)
 
 
-# --------------------- 渲染头部：英文拆两行，绝对完整显示 ---------------------
+# --------------------- 渲染头部：改为 st.markdown，永不裁切 ---------------------
 def render_global_header():
-    components.html(
+    st.markdown(
         """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <style>
-                body {
-                    margin: 0;
-                    padding: 0;
-                    background: transparent;
-                    overflow: hidden;
-                }
-                .title-cn {
-                    font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB',
-                                 'Heiti SC', 'WenQuanYi Micro Hei', 'Segoe UI', sans-serif;
-                    font-size: 56px;
-                    font-weight: 900;
-                    color: #1e3d59;
-                    text-align: center;
-                    line-height: 1.15;
-                    letter-spacing: 2px;
-                    margin: 8px 0 16px 0;
-                    padding: 0 15px;
-                    white-space: nowrap;
-                }
-                .title-en {
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    font-size: 20px;
-                    font-weight: 700;
-                    color: #4a6572;
-                    text-align: center;
-                    line-height: 1.5;
-                    letter-spacing: 2px;
-                    margin: 0;
-                    padding: 0 15px;
-                    white-space: nowrap;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="title-cn">阻燃聚合物复合材料智能设计平台</div>
-            <div class="title-en">Flame Retardant Composites</div>
-            <div class="title-en">AI Platform</div>
-        </body>
-        </html>
+        <div class="app-header-wrap">
+            <div class="app-title-cn">阻燃聚合物复合材料智能设计平台</div>
+            <div class="app-title-en">Flame Retardant Composites</div>
+            <div class="app-title-en">AI Platform</div>
+        </div>
         """,
-        height=230,
-        scrolling=False,
+        unsafe_allow_html=True,
     )
 
 
