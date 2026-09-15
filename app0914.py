@@ -132,66 +132,65 @@ def apply_global_styles():
             font-size: 18px !important; font-weight: 600 !important;
         }
 
-        /* ===== 全局标题样式（超大字号 + 中文分两行） ===== */
+        /* ===== 全局标题样式（用 !important + 高优先级选择器，彻底覆盖 Streamlit 默认样式） ===== */
         .app-header-wrap {
-            width: 100%;
-            text-align: center;
-            padding: 18px 8px 24px 8px;
-            box-sizing: border-box;
+            width: 100% !important;
+            text-align: center !important;
+            padding: 18px 8px 26px 8px !important;
+            box-sizing: border-box !important;
         }
-        .app-title-cn {
+        .app-header-wrap .app-title-cn {
             font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB',
-                         'Heiti SC', 'WenQuanYi Micro Hei', 'Segoe UI', sans-serif;
-            font-size: 72px;
-            font-weight: 900;
-            color: #1e3d59;
-            line-height: 1.18;
-            letter-spacing: 4px;
-            margin: 0 auto 4px auto;
-            padding: 0;
-            white-space: nowrap;
-            display: block;
-            width: 100%;
-            text-shadow: 0 2px 6px rgba(30, 61, 89, 0.08);
+                         'Heiti SC', 'WenQuanYi Micro Hei', 'Segoe UI', sans-serif !important;
+            font-size: 72px !important;
+            font-weight: 900 !important;
+            color: #1e3d59 !important;
+            line-height: 1.18 !important;
+            letter-spacing: 4px !important;
+            margin: 0 auto 4px auto !important;
+            padding: 0 !important;
+            white-space: nowrap !important;
+            display: block !important;
+            width: 100% !important;
+            text-shadow: 0 2px 6px rgba(30, 61, 89, 0.08) !important;
         }
-        .app-title-cn-2 {
-            margin: 0 auto 20px auto;
+        .app-header-wrap .app-title-cn-2 {
+            margin: 0 auto 20px auto !important;
         }
-        .app-title-en {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 24px;
-            font-weight: 700;
-            color: #4a6572;
-            line-height: 1.5;
-            letter-spacing: 3px;
-            margin: 0 auto;
-            padding: 0;
-            white-space: nowrap;
-            display: block;
-            width: 100%;
+        .app-header-wrap .app-title-en {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+            font-size: 24px !important;
+            font-weight: 700 !important;
+            color: #4a6572 !important;
+            line-height: 1.5 !important;
+            letter-spacing: 3px !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
+            white-space: nowrap !important;
+            display: block !important;
+            width: 100% !important;
         }
-        /* 中等屏幕 */
         @media (max-width: 1400px) {
-            .app-title-cn { font-size: 64px; letter-spacing: 3px; }
-            .app-title-en { font-size: 22px; }
+            .app-header-wrap .app-title-cn { font-size: 64px !important; letter-spacing: 3px !important; }
+            .app-header-wrap .app-title-en { font-size: 22px !important; }
         }
         @media (max-width: 1100px) {
-            .app-title-cn { font-size: 54px; letter-spacing: 2px; }
-            .app-title-en { font-size: 20px; }
+            .app-header-wrap .app-title-cn { font-size: 54px !important; letter-spacing: 2px !important; }
+            .app-header-wrap .app-title-en { font-size: 20px !important; }
         }
         @media (max-width: 900px) {
-            .app-title-cn { font-size: 44px; letter-spacing: 1.5px; }
-            .app-title-en { font-size: 17px; letter-spacing: 1.5px; }
+            .app-header-wrap .app-title-cn { font-size: 44px !important; letter-spacing: 1.5px !important; }
+            .app-header-wrap .app-title-en { font-size: 17px !important; letter-spacing: 1.5px !important; }
         }
         @media (max-width: 600px) {
-            .app-title-cn { font-size: 32px; letter-spacing: 1px; }
-            .app-title-en { font-size: 14px; letter-spacing: 1px; }
+            .app-header-wrap .app-title-cn { font-size: 32px !important; letter-spacing: 1px !important; }
+            .app-header-wrap .app-title-en { font-size: 14px !important; letter-spacing: 1px !important; }
         }
     </style>
     """, unsafe_allow_html=True)
 
 
-# --------------------- 渲染头部：中文分两行，超大字号 ---------------------
+# --------------------- 渲染头部：中文分两行，72px 超大字号 ---------------------
 def render_global_header():
     st.markdown(
         """
