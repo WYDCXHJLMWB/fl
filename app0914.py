@@ -132,60 +132,66 @@ def apply_global_styles():
             font-size: 18px !important; font-weight: 600 !important;
         }
 
-        /* ===== 全局标题样式（保持56px大字号 + 中文分两行） ===== */
+        /* ===== 全局标题样式（超大字号 + 中文分两行） ===== */
         .app-header-wrap {
             width: 100%;
             text-align: center;
-            padding: 12px 8px 18px 8px;
+            padding: 18px 8px 24px 8px;
             box-sizing: border-box;
         }
         .app-title-cn {
             font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB',
                          'Heiti SC', 'WenQuanYi Micro Hei', 'Segoe UI', sans-serif;
-            font-size: 56px;
+            font-size: 72px;
             font-weight: 900;
             color: #1e3d59;
-            line-height: 1.2;
-            letter-spacing: 2px;
-            margin: 0 auto 6px auto;
+            line-height: 1.18;
+            letter-spacing: 4px;
+            margin: 0 auto 4px auto;
             padding: 0;
             white-space: nowrap;
             display: block;
             width: 100%;
+            text-shadow: 0 2px 6px rgba(30, 61, 89, 0.08);
         }
         .app-title-cn-2 {
-            margin: 0 auto 16px auto;
+            margin: 0 auto 20px auto;
         }
         .app-title-en {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 20px;
+            font-size: 24px;
             font-weight: 700;
             color: #4a6572;
             line-height: 1.5;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             margin: 0 auto;
             padding: 0;
             white-space: nowrap;
             display: block;
             width: 100%;
         }
-        @media (max-width: 1200px) {
-            .app-title-cn { font-size: 48px; }
-            .app-title-en { font-size: 18px; }
+        /* 中等屏幕 */
+        @media (max-width: 1400px) {
+            .app-title-cn { font-size: 64px; letter-spacing: 3px; }
+            .app-title-en { font-size: 22px; }
+        }
+        @media (max-width: 1100px) {
+            .app-title-cn { font-size: 54px; letter-spacing: 2px; }
+            .app-title-en { font-size: 20px; }
         }
         @media (max-width: 900px) {
-            .app-title-cn { font-size: 38px; letter-spacing: 1px; }
-            .app-title-en { font-size: 16px; letter-spacing: 1px; }
+            .app-title-cn { font-size: 44px; letter-spacing: 1.5px; }
+            .app-title-en { font-size: 17px; letter-spacing: 1.5px; }
         }
         @media (max-width: 600px) {
-            .app-title-cn { font-size: 28px; letter-spacing: 0.5px; }
-            .app-title-en { font-size: 14px; letter-spacing: 0.5px; }
+            .app-title-cn { font-size: 32px; letter-spacing: 1px; }
+            .app-title-en { font-size: 14px; letter-spacing: 1px; }
         }
     </style>
     """, unsafe_allow_html=True)
 
 
-# --------------------- 渲染头部：中文分两行，保持56px大字号 ---------------------
+# --------------------- 渲染头部：中文分两行，超大字号 ---------------------
 def render_global_header():
     st.markdown(
         """
